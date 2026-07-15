@@ -1,0 +1,19 @@
+# Paquetes y copias de despliegue
+*.zip
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+
+# Archivos generados durante la ejecución
+*.log
+*.lock
+tmp/*
+!tmp/.htaccess
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

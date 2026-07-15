@@ -1,0 +1,10 @@
+# Proteger el directorio data — sin acceso web directo.
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

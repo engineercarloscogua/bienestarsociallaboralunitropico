@@ -1,0 +1,40 @@
+{
+  "main": {
+    "id": "portal-th-main",
+    "type": "split",
+    "children": [
+      {
+        "id": "portal-th-start",
+        "type": "leaf",
+        "state": {
+          "type": "markdown",
+          "state": {
+            "file": "00 - Inicio.md",
+            "mode": "source"
+          }
+        }
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "portal-th-left",
+    "type": "split",
+    "children": [],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "portal-th-right",
+    "type": "split",
+    "children": [],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "active": "portal-th-start",
+  "lastOpenFiles": [
+    "00 - Inicio.md",
+    "01 - Estado actual.md",
+    "05 - Pendientes.md"
+  ]
+}

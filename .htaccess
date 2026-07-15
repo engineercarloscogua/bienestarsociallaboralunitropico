@@ -1,0 +1,41 @@
+DirectoryIndex index.php
+Options -Indexes
+AddDefaultCharset UTF-8
+
+# Bloquear archivos internos o de desarrollo.
+<FilesMatch "^(README(\.md)?|DEPLOY_CPANEL(\.md)?|composer\.(json|lock)|package(-lock)?\.json|pnpm-lock\.yaml|yarn\.lock)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Bloquear archivos ocultos, excepto validaciones tipo .well-known.
+<FilesMatch "^\.(?!well-known)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Permitir certificados/validaciones automáticas del hosting.
+  RewriteRule ^\.well-known/ - [L]
+
+  # Evitar exposición de carpetas internas si el hosting ignora sus .htaccess.
+  RewriteRule ^(data|includes|knowledge|tmp)(/|$) - [F,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

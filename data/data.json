@@ -1,0 +1,1129 @@
+{
+    "config": {
+        "site_title": "Bienestar Social Laboral",
+        "site_subtitle": "Bienestar Social Laboral - Oficina de Talento Humano",
+        "site_description": "Portal de Bienestar Social Laboral de la Universidad de los Llanos Orientales",
+        "hero_title": "Bienvenidos a Bienestar Social Laboral",
+        "hero_subtitle": "Impulsamos tu bienestar y crecimiento profesional en Unitrópico",
+        "footer_email": "psicologiaorganizacional@unitropico.edu.co,climaorganizacional@unitropico.edu.co",
+        "google_calendar_id": "c_056309a68b85d35f32a88c03b98bb8f52cff6f980a765e9b60d9d8ce1f8987b4@group.calendar.google.com"
+    },
+    "pages": [
+        {
+            "slug": "inicio",
+            "title": "Inicio",
+            "subtitle": "Elige uno de los servicios",
+            "sort_order": 1,
+            "is_active": true
+        },
+        {
+            "slug": "talento-humano",
+            "title": "Gestión del Talento Humano",
+            "subtitle": "Programas de estímulos, incentivos y desarrollo del talento",
+            "sort_order": 2,
+            "is_active": true
+        },
+        {
+            "slug": "desarrollo",
+            "title": "Desarrollo Profesional",
+            "subtitle": "Capacítate y crece con nosotros",
+            "sort_order": 3,
+            "is_active": true
+        },
+        {
+            "slug": "bienestar",
+            "title": "Bienestar Laboral",
+            "subtitle": "Espacios para tu salud y bienestar integral",
+            "sort_order": 4,
+            "is_active": true
+        },
+        {
+            "slug": "calendario",
+            "title": "Calendario de Actividades",
+            "subtitle": "Consulta y participa en nuestros eventos",
+            "sort_order": 5,
+            "is_active": true
+        }
+    ],
+    "cards": {
+        "inicio": [
+            {
+                "id": "i1",
+                "title": "Gestión del Talento Humano",
+                "description": "Accede a los programas de estímulos e incentivos, inducción y reinducción institucional diseñados para reconocer tu compromiso.",
+                "icon": "users",
+                "color": "#006B5B",
+                "link_url": "pages/talento-humano.php",
+                "link_label": "Ir a Talento Humano",
+                "sort_order": 1,
+                "is_active": true,
+                "image_url": "assets/uploads/talento-humano.png"
+            },
+            {
+                "id": "i2",
+                "title": "Desarrollo Profesional",
+                "description": "Capacítate continuamente con rutas formativas, herramientas de liderazgo y preparación para cada etapa de tu carrera.",
+                "icon": "graduation-cap",
+                "color": "#b8a261",
+                "image_url": "assets/uploads/herramientas-liderazgo-6a5663685a852.png",
+                "link_url": "pages/desarrollo.php",
+                "link_label": "Ir a Desarrollo Profesional",
+                "sort_order": 2,
+                "is_active": true
+            },
+            {
+                "id": "i3",
+                "title": "Bienestar Laboral",
+                "description": "Participa en espacios de salud integral, recreación, autocuidado y actividades diseñadas para fortalecer tu bienestar.",
+                "icon": "heart",
+                "color": "#007c72",
+                "image_url": "assets/uploads/recursos-autocuidado-6a566355157a9.png",
+                "link_url": "pages/bienestar.php",
+                "link_label": "Ir a Bienestar Laboral",
+                "sort_order": 3,
+                "is_active": true
+            }
+        ],
+        "talento-humano": [
+            {
+                "id": "t1",
+                "title": "Política de Estímulos e Incentivos",
+                "description": "Desde reconocimientos hasta oportunidades únicas, aquí valoramos cada contribución y recompensamos el compromiso con el crecimiento colectivo. Descubre cómo destacar y ser parte del equipo de excelencia de Unitrópico.",
+                "icon": "award",
+                "color": "#006b5b",
+                "image_url": "assets/uploads/politica-estimulos-6a56637d0ba63.png",
+                "link_url": "pages/programa.php?slug=politica-estimulos",
+                "link_label": "Ver más",
+                "sort_order": 1,
+                "is_active": true
+            },
+            {
+                "id": "t2",
+                "title": "Inducción y Reinducción Institucional",
+                "description": "Accede a los cursos de inducción y reinducción institucional organizados por año para fortalecer tu conocimiento de Unitrópico.",
+                "icon": "refresh-cw",
+                "color": "#0f766e",
+                "image_url": "assets/uploads/induccion-6a5663bc65410.png",
+                "link_url": "pages/programa.php?slug=induccion-reinduccion",
+                "link_label": "Ver cursos",
+                "sort_order": 2,
+                "is_active": true
+            }
+        ],
+        "desarrollo": [
+            {
+                "id": "d1",
+                "title": "Política de Integridad",
+                "description": "En Unitrópico, la integridad no es solo un valor, es nuestra forma de actuar. Descubre cómo transformamos principios éticos en acciones concretas que inspiran y generan confianza.",
+                "icon": "shield-check",
+                "color": "#006b5b",
+                "image_url": "assets/uploads/politica-integridad-6a566392b2938.png",
+                "link_url": "pages/programa.php?slug=politica-integridad",
+                "link_label": "Ver más",
+                "sort_order": 1,
+                "is_active": true
+            },
+            {
+                "id": "d2",
+                "title": "Herramientas de Liderazgo",
+                "description": "Descubre piezas prácticas, consejos, videos y podcasts para fortalecer comunicación, gestión de equipos y toma de decisiones.",
+                "icon": "trending-up",
+                "color": "#007c72",
+                "image_url": "assets/uploads/herramientas-liderazgo-6a56639f8a979.png",
+                "link_url": "pages/programa.php?slug=herramientas-liderazgo",
+                "link_label": "Explorar herramientas",
+                "sort_order": 2,
+                "is_active": true
+            },
+            {
+                "id": "d3",
+                "title": "Preparación para la Jubilación",
+                "description": "Descubre todo lo que necesitas para planificar un futuro lleno de tranquilidad y libertad. Desde consejos prácticos y orientación, hasta herramientas esenciales para la jubilación.",
+                "icon": "sun",
+                "color": "#b8a261",
+                "image_url": "assets/uploads/preparacion-jubilacion-6a5663ab8135f.png",
+                "link_url": "pages/programa.php?slug=preparacion-jubilacion",
+                "link_label": "Ver más",
+                "sort_order": 3,
+                "is_active": true
+            },
+            {
+                "id": "d4",
+                "title": "Evaluación de Rendimiento Laboral",
+                "description": "La evaluación de desempeño laboral y acuerdos de gestión permiten reconocer tus logros, fortalecer tus habilidades y promover tu crecimiento profesional.",
+                "icon": "clipboard-check",
+                "color": "#4f6f5f",
+                "image_url": "assets/uploads/evaluaciones-desempe-o-6a5116dfa50a7.png",
+                "link_url": "http://144.91.123.192:8090/",
+                "link_label": "Ingresar al sistema",
+                "sort_order": 4,
+                "is_active": true
+            }
+        ],
+        "bienestar": [
+            {
+                "id": "b1",
+                "title": "Psicología y Orientación Laboral",
+                "description": "Agenda atención personalizada para manejar el estrés, promover hábitos saludables y potenciar habilidades clave en tu entorno laboral.",
+                "icon": "brain",
+                "color": "#006b5b",
+                "image_url": "assets/uploads/programa-escucha-6a5663d1e15fa.png",
+                "link_url": "pages/programa.php?slug=psicologia-orientacion",
+                "link_label": "Ver más",
+                "sort_order": 1,
+                "is_active": true
+            },
+            {
+                "id": "b2",
+                "title": "Café Conversemos con Talento Humano",
+                "description": "Agenda un espacio para fortalecer el clima organizacional, compartir ideas y construir un entorno laboral más unido y motivador.",
+                "icon": "coffee",
+                "color": "#b8a261",
+                "image_url": "assets/uploads/picnic-cafe-talentohumano-6a4c1c13b05e9.png",
+                "link_url": "",
+                "link_label": "Agendar espacio",
+                "sort_order": 2,
+                "is_active": true
+            },
+            {
+                "id": "b3",
+                "title": "Recursos de Autocuidado",
+                "description": "Accede a artículos, videos, podcasts e infografías sobre hábitos saludables, manejo del estrés y equilibrio vida-trabajo.",
+                "icon": "heart-pulse",
+                "color": "#0f766e",
+                "image_url": "assets/uploads/recursos-autocuidado-6a4c1c03bce8e.png",
+                "link_url": "pages/programa.php?slug=recursos-autocuidado",
+                "link_label": "Ver recursos",
+                "sort_order": 3,
+                "is_active": true
+            },
+            {
+                "id": "b4",
+                "title": "Positivamente — Positiva te Cuida",
+                "description": "Accede a servicios orientados al bienestar emocional y físico, como orientación Psicológica Prioritaria 24/7, sesiones virtuales de yoga, pilates, mindfulness y el programa 'Muévete'. Ingresa con tu número de cédula.",
+                "icon": "sparkles",
+                "color": "#007c72",
+                "image_url": "assets/uploads/plataforma-positiva-6a4c176aef28f.png",
+                "link_url": "https://www.funcionpublica.gov.co/programa-servimos",
+                "link_label": "Acceder al Programa",
+                "sort_order": 4,
+                "is_active": true
+            }
+        ],
+        "calendario": []
+    },
+    "admin": {
+        "username": "admin",
+        "password_hash": "$2y$10$hR6CSMka1DFOh8ekqfHTeOj58zFLE1sFNEFuM0gJfMN55GMh1UkdC",
+        "auth_version": 1
+    },
+    "program_pages": {
+        "politica-estimulos": {
+            "title": "Política de Estímulos e Incentivos",
+            "section": "Gestión del Talento Humano",
+            "subtitle": "Reconocimiento al compromiso, la excelencia y el aporte institucional.",
+            "image_url": "assets/uploads/politica-estimulos.png",
+            "accent": "#006B5B",
+            "intro": "Este espacio reúne la información principal sobre la política de estímulos e incentivos, orientada a reconocer el desempeño, la participación y el compromiso de los servidores de Unitrópico.",
+            "blocks": [
+                {
+                    "title": "Propósito",
+                    "body": "Promover una cultura de reconocimiento que valore los aportes individuales y colectivos al cumplimiento de los objetivos institucionales."
+                },
+                {
+                    "title": "Alcance",
+                    "body": "Aplica a los procesos, programas o actividades de reconocimiento definidos por Talento Humano para fortalecer la motivación y el sentido de pertenencia."
+                },
+                {
+                    "title": "Consulta del recurso",
+                    "body": "Consulta la información y los materiales disponibles en esta sección."
+                }
+            ],
+            "actions": [],
+            "benefits_title": "Beneficios e incentivos",
+            "benefits": [
+                {
+                    "kicker": "Movilidad sostenible",
+                    "title": "Incentivos por uso de bicicleta",
+                    "body": "Registra tus desplazamientos en bicicleta y consulta tus reportes acumulados para acceder al incentivo institucional.",
+                    "image_url": "assets/uploads/incentivo-bicicleta-unitropico.png",
+                    "actions": [
+                        {
+                            "label": "Llenen este formulario",
+                            "url": "https://docs.google.com/forms/d/e/1FAIpQLSeeDewYKAqw-P0SMAnAwTSPn4nnRLe5h2hKO2DdeY9pZfj0ag/viewform"
+                        },
+                        {
+                            "label": "Revisar registros",
+                            "url": "https://datastudio.google.com/u/0/reporting/214afe55-600a-45d2-b677-69cfd04489fd/page/YFPxF?s=utK-x8pKeZo"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "Salario emocional",
+                    "title": "Medio día compensatorio por cumpleaños",
+                    "body": "Espacio informativo para consultar las condiciones del beneficio y mantenerlo visible dentro de la política de estímulos.",
+                    "image_url": "assets/uploads/beneficio-cumpleanos.png"
+                },
+                {
+                    "kicker": "Desarrollo profesional",
+                    "title": "Compensatorio para estudios",
+                    "body": "Espacio informativo para beneficios relacionados con actividades de estudio que se contrapongan a la jornada laboral.",
+                    "image_url": "assets/uploads/beneficio-compensatorio-estudios.png"
+                }
+            ]
+        },
+        "induccion-reinduccion": {
+            "title": "Inducción y Reinducción Institucional",
+            "section": "Gestión del Talento Humano",
+            "subtitle": "Cursos institucionales organizados por vigencia.",
+            "image_url": "assets/uploads/induccion.png",
+            "accent": "#0F766E",
+            "intro": "La inducción y reinducción fortalecen el conocimiento institucional y actualizan a los equipos sobre lineamientos, procesos y cultura organizacional.",
+            "blocks": [
+                {
+                    "title": "Inducción",
+                    "body": "Dirigida a quienes ingresan a trabajar con la institución y necesitan conocer su marco institucional, procesos y responsabilidades."
+                },
+                {
+                    "title": "Reinducción",
+                    "body": "Dirigida a quienes deben actualizar sus conocimientos institucionales y reforzar lineamientos clave de la gestión universitaria."
+                }
+            ],
+            "year_sections": [
+                {
+                    "year": "2025",
+                    "body": "Curso de inducción institucional correspondiente a la vigencia 2025.",
+                    "label": "Ir al curso 2025",
+                    "url": "https://classroom.google.com/c/Nzg2NTA3MzEyODI3?cjc=gwah2wjx"
+                },
+                {
+                    "year": "2026",
+                    "body": "Curso de inducción y reinducción institucional correspondiente a la vigencia 2026.",
+                    "label": "Ir al curso 2026",
+                    "url": "https://classroom.google.com/c/NzgwNzAwNzY5MjU5?cjc=npfsz2wz"
+                }
+            ]
+        },
+        "politica-integridad": {
+            "title": "Política de Integridad",
+            "section": "Desarrollo Profesional",
+            "subtitle": "Principios éticos aplicados a la gestión pública universitaria.",
+            "image_url": "assets/uploads/politica-integridad.png",
+            "accent": "#006B5B",
+            "intro": "La Política de Integridad de Unitrópico, expedida mediante el Acuerdo CS No. 050 de 2023, orienta la actuación institucional desde valores, transparencia, responsabilidad, servicio y confianza pública.",
+            "blocks": [
+                {
+                    "title": "Objeto",
+                    "body": "Expedir la Política de Integridad de la Universidad Internacional del Trópico Americano como guía institucional para fortalecer una cultura ética, responsable y honesta."
+                },
+                {
+                    "title": "Alcance",
+                    "body": "Está dirigida a funcionarios, contratistas y comunidad universitaria, quienes deben acoger, aplicar y promover sus valores de manera consciente y responsable."
+                },
+                {
+                    "title": "Responsable",
+                    "body": "La Oficina de Talento Humano coordina la promoción, desarrollo, seguimiento y evaluación de la política con el concurso de las áreas misionales y de apoyo."
+                },
+                {
+                    "title": "Estrategias",
+                    "body": "La política impulsa ejercicios participativos de divulgación, apropiación de valores, experiencias pedagógicas y mecanismos de seguimiento para verificar su cumplimiento."
+                }
+            ],
+            "policy_values_title": "Piezas interactivas de la Política de Integridad",
+            "policy_banner": "assets/uploads/politica-integridad-banner.png",
+            "policy_values": [
+                {
+                    "number": "1",
+                    "title": "Honestidad",
+                    "summary": "Actuar con verdad, transparencia y rectitud.",
+                    "do": "Di la verdad, aclara dudas, facilita información pública veraz y denuncia faltas o violaciones de derechos en el ejercicio del rol.",
+                    "dont": "No aceptes favores, no uses recursos institucionales para fines personales, no ocultes errores ni abuses del cargo para beneficio propio o de terceros."
+                },
+                {
+                    "number": "2",
+                    "title": "Respeto",
+                    "summary": "Reconocer y tratar dignamente a todas las personas.",
+                    "do": "Atiende con amabilidad, igualdad y equidad; escucha opiniones distintas; practica comunicación asertiva y cuida el ambiente universitario.",
+                    "dont": "No discrimines, agredas, ignores o maltrates a miembros de la comunidad; evita prejuicios y comentarios que afecten el buen nombre de otros."
+                },
+                {
+                    "number": "3",
+                    "title": "Compromiso",
+                    "summary": "Asumir el rol público con disposición de servicio.",
+                    "do": "Comprende necesidades, orienta a quien requiere información, presta un servicio ágil y prioriza actividades que aporten a la misión institucional.",
+                    "dont": "No trabajes con actitud negativa, no evadas responsabilidades ni ignores inquietudes de estudiantes, profesores, administrativos o ciudadanos."
+                },
+                {
+                    "number": "4",
+                    "title": "Diligencia",
+                    "summary": "Cumplir con eficiencia, prontitud y calidad.",
+                    "do": "Usa responsablemente los recursos, cumple tiempos, asegura calidad, comunica oportunidades de mejora y organiza tus tareas e información.",
+                    "dont": "No malgastes recursos, no postergues decisiones, no demuestres desinterés, no evadas funciones ni pierdas tiempo en labores ajenas al rol."
+                },
+                {
+                    "number": "5",
+                    "title": "Justicia",
+                    "summary": "Actuar con imparcialidad, equidad e igualdad.",
+                    "do": "Toma decisiones informadas y objetivas, protege derechos y usa mecanismos de diálogo y concertación con las partes involucradas.",
+                    "dont": "No favorezcas intereses particulares, no permitas que presiones o preferencias interfieran en decisiones, y no aceptes maltrato ni discriminación."
+                },
+                {
+                    "number": "6",
+                    "title": "Solidaridad",
+                    "summary": "Aportar al bienestar común y al trabajo en equipo.",
+                    "do": "Percibe necesidades, trabaja con empatía, interésate por el bienestar de tus compañeros y colabora en soluciones para el bien común.",
+                    "dont": "No actúes con egoísmo o negligencia, no des la espalda a los compañeros ni tomes decisiones desde argumentos individualistas."
+                },
+                {
+                    "number": "7",
+                    "title": "Liderazgo",
+                    "summary": "Inspirar, decidir bien y movilizar hacia metas comunes.",
+                    "do": "Motiva a otros, decide pensando en la comunidad universitaria, actúa con ética, comunica con asertividad y propone ideas innovadoras.",
+                    "dont": "No te apropies del trabajo ajeno, no impongas decisiones, no abuses del rol ni maltrates a los compañeros."
+                }
+            ],
+            "bulletins_title": "Boletines de integridad",
+            "bulletin_sections": [
+                {
+                    "year": "2025",
+                    "title": "Boletines 2025",
+                    "body": "Consulta las ediciones publicadas para fortalecer la apropiación de la Política de Integridad durante la vigencia 2025.",
+                    "items": [
+                        {
+                            "label": "Ver Boletín 1",
+                            "url": "https://flipbook.so/flip/k9sDS4PfHlKUkZtCBg3z"
+                        },
+                        {
+                            "label": "Ver Boletín 2",
+                            "url": "https://flipbook.so/flip/kayLxNKANFIhDJMDIPg5"
+                        },
+                        {
+                            "label": "Ver Boletín 3",
+                            "url": "https://flipbook.so/flip/iCyJmJ4BkJ0krvxdSImm"
+                        },
+                        {
+                            "label": "Ver Boletín 4",
+                            "url": "https://flipbook.so/flip/ZI5PMneTdja6lo4MeTxh"
+                        }
+                    ]
+                },
+                {
+                    "year": "2026",
+                    "title": "Boletines 2026",
+                    "body": "Espacio reservado para los boletines de la vigencia 2026. Los botones quedarán activos cuando se publiquen los enlaces oficiales.",
+                    "items": [
+                        {
+                            "label": "Boletín 1 - Próximamente",
+                            "url": ""
+                        },
+                        {
+                            "label": "Boletín 2 - Próximamente",
+                            "url": ""
+                        },
+                        {
+                            "label": "Boletín 3 - Próximamente",
+                            "url": ""
+                        },
+                        {
+                            "label": "Boletín 4 - Próximamente",
+                            "url": ""
+                        }
+                    ]
+                }
+            ]
+        },
+        "preparacion-jubilacion": {
+            "title": "Preparación para la Jubilación",
+            "section": "Desarrollo Profesional",
+            "subtitle": "Acompañamiento para planear una transición laboral y personal tranquila.",
+            "image_url": "assets/uploads/preparacion-jubilacion.png",
+            "accent": "#B8A261",
+            "intro": "La jubilación no es un cierre: es una transición hacia una etapa con nuevas rutinas, decisiones financieras, cuidado de la salud y proyectos personales. En Unitrópico queremos que este proceso se viva con información, calma y propósito.",
+            "blocks": [
+                {
+                    "title": "Antes del retiro",
+                    "body": "Revisa requisitos legales, semanas cotizadas, edad, historia laboral y estado de tu trámite con el fondo de pensiones. La claridad documental evita sorpresas."
+                },
+                {
+                    "title": "Plan financiero personal",
+                    "body": "Compara ingresos futuros con gastos fijos, identifica deudas, calcula reservas y define un presupuesto realista para la etapa posterior al retiro."
+                },
+                {
+                    "title": "Salud y bienestar",
+                    "body": "Agenda chequeos médicos, fortalece hábitos de movimiento, descanso y alimentación, y cuida también tu salud emocional durante el cambio de rutina."
+                },
+                {
+                    "title": "Proyecto de vida",
+                    "body": "Explora voluntariado, mentorías, emprendimientos, aprendizaje, hobbies o espacios familiares. Retirarse del cargo no significa retirarse de la vida activa."
+                }
+            ],
+            "benefits_title": "Pieza gráfica destacada",
+            "benefits": [
+                {
+                    "kicker": "Guía paso a paso",
+                    "title": "Pasos previos al retiro",
+                    "body": "Pieza tomada de la página 3 del material de jubilación: requisitos legales, organización financiera, salud y vida después del retiro.",
+                    "image_url": "assets/uploads/jubilacion-post-planeacion.png",
+                    "actions": [
+                        {
+                            "label": "Ver imagen completa",
+                            "url": "assets/uploads/jubilacion-post-planeacion.png"
+                        }
+                    ]
+                }
+            ],
+            "tool_cards_title": "Ruta interactiva para preparar tu jubilación",
+            "tool_cards": [
+                {
+                    "icon": "clipboard-check",
+                    "title": "1. Carpeta pensional al día",
+                    "summary": "Ordena documentos antes de iniciar trámites.",
+                    "body": "Crea una carpeta física o digital con historia laboral, cédula, certificaciones, extractos del fondo y comunicaciones relevantes.",
+                    "tips": [
+                        "Verifica que tus datos personales estén iguales en todos los documentos.",
+                        "Revisa semanas cotizadas y periodos faltantes.",
+                        "Guarda radicados y respuestas del fondo de pensiones.",
+                        "Consulta dudas con anticipación, no en la semana del trámite."
+                    ]
+                },
+                {
+                    "icon": "bar-chart-2",
+                    "title": "2. Presupuesto post-jubilación",
+                    "summary": "Proyecta ingresos, gastos y reservas.",
+                    "body": "Usa la guía de presupuesto para mirar con honestidad tus gastos y tomar decisiones con tiempo.",
+                    "tips": [
+                        "Separa gastos fijos, variables y ocasionales.",
+                        "Calcula un fondo de emergencia.",
+                        "Prioriza salud, vivienda, alimentación y transporte.",
+                        "Define qué gastos pueden ajustarse sin afectar tu bienestar."
+                    ]
+                },
+                {
+                    "icon": "heart-pulse",
+                    "title": "3. Bienestar físico y emocional",
+                    "summary": "Prepara cuerpo, mente y red de apoyo.",
+                    "body": "La transición puede mover emociones, relaciones y rutinas. Planear bienestar ayuda a sostener una vida activa.",
+                    "tips": [
+                        "Agenda chequeos médicos preventivos.",
+                        "Diseña una rutina semanal con actividad física.",
+                        "Conversa con familia o personas cercanas sobre expectativas.",
+                        "Mantén espacios sociales y actividades significativas."
+                    ]
+                },
+                {
+                    "icon": "sparkles",
+                    "title": "4. Nueva agenda con propósito",
+                    "summary": "Convierte experiencia en proyectos vivos.",
+                    "body": "Tu conocimiento sigue teniendo valor. Piensa cómo compartirlo o transformarlo en nuevas actividades.",
+                    "tips": [
+                        "Mentorías a personas jóvenes o nuevos equipos.",
+                        "Voluntariado, docencia, escritura o comunidad.",
+                        "Hobbies con disciplina amable: huerta, cocina, lectura, arte.",
+                        "Un proyecto pequeño por trimestre, no diez cambios al tiempo."
+                    ]
+                }
+            ],
+            "media_title": "Ideas para una jubilación activa en Unitrópico",
+            "media_sections": [
+                {
+                    "kicker": "Actividad sugerida",
+                    "title": "Café de transición",
+                    "body": "Un encuentro corto para conversar sobre expectativas, dudas y aprendizajes con personas que están cerca del retiro.",
+                    "items": [
+                        {
+                            "label": "Dinámica: Mi siguiente capítulo",
+                            "description": "Cada participante escribe tres cosas que quiere conservar, tres que quiere soltar y una que quiere aprender.",
+                            "url": "pages/programa.php?slug=preparacion-jubilacion"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "Pieza interna",
+                    "title": "Mentoría de legado",
+                    "body": "Antes del retiro, el servidor puede compartir procesos, aprendizajes y consejos con una persona o equipo de relevo.",
+                    "items": [
+                        {
+                            "label": "Guía rápida de conversación",
+                            "description": "Qué aprendí, qué cuidaría, qué errores evitaría y qué oportunidades veo para Unitrópico.",
+                            "url": "pages/programa.php?slug=preparacion-jubilacion"
+                        }
+                    ]
+                }
+            ],
+            "pdf_resources_title": "Guía de presupuesto personal",
+            "pdf_resources": [
+                {
+                    "kicker": "PDF interactivo",
+                    "title": "Guía para organizar tu presupuesto personal",
+                    "body": "Visualiza la guía dentro de la página y úsala como apoyo para estimar ingresos, egresos, gastos fijos, deudas y reservas antes de la jubilación.",
+                    "url": "assets/uploads/guia-presupuesto-personal.pdf",
+                    "label": "Abrir o descargar PDF"
+                }
+            ],
+            "actions": [
+                {
+                    "label": "Volver a Desarrollo Profesional",
+                    "url": "pages/desarrollo.php"
+                }
+            ]
+        },
+        "psicologia-orientacion": {
+            "title": "Psicología y Orientación Laboral",
+            "section": "Bienestar Laboral",
+            "subtitle": "Acompañamiento para el bienestar emocional y el desempeño en el entorno laboral.",
+            "image_url": "assets/uploads/programa-escucha.png",
+            "accent": "#006B5B",
+            "intro": "Este servicio ofrece orientación y escucha para apoyar el manejo del estrés, el autocuidado y el fortalecimiento de habilidades personales en el trabajo.",
+            "blocks": [
+                {
+                    "title": "Acompañamiento",
+                    "body": "Espacio de orientación individual o grupal para identificar necesidades y fortalecer recursos personales."
+                },
+                {
+                    "title": "Temas frecuentes",
+                    "body": "Manejo del estrés, comunicación, adaptación al cambio, hábitos saludables y equilibrio vida-trabajo."
+                },
+                {
+                    "title": "Acceso",
+                    "body": "Talento Humano puede ampliar esta sección con canales de atención, horarios o formularios de agendamiento."
+                }
+            ]
+        },
+        "recursos-autocuidado": {
+            "title": "Recursos de Autocuidado",
+            "section": "Bienestar Laboral",
+            "subtitle": "Herramientas para cuidar tu salud mental, energía y equilibrio en el trabajo.",
+            "image_url": "assets/uploads/recursos-autocuidado.png",
+            "accent": "#0F766E",
+            "intro": "Como equipo de clima organizacional, entendemos el autocuidado como una práctica cotidiana: reconocer señales de cansancio, pedir apoyo a tiempo, poner límites sanos y construir rutinas que protejan la salud emocional en el trabajo.",
+            "blocks": [
+                {
+                    "title": "Autocuidado emocional",
+                    "body": "Aprende a identificar señales de estrés, irritabilidad, fatiga mental o desmotivación. Reconocer lo que ocurre es el primer paso para regularlo."
+                },
+                {
+                    "title": "Pausas que sí reparan",
+                    "body": "Una pausa no es solo dejar de trabajar: es respirar, moverse, hidratarse, mirar lejos de la pantalla y volver con atención más limpia."
+                },
+                {
+                    "title": "Apoyo oportuno",
+                    "body": "Si una situación te supera, busca acompañamiento. Hablar a tiempo puede prevenir conflictos, desgaste y sensación de aislamiento."
+                },
+                {
+                    "title": "Cultura del cuidado",
+                    "body": "El bienestar también es colectivo: escuchar con respeto, distribuir cargas, reconocer límites y conversar antes de que la tensión crezca."
+                }
+            ],
+            "tool_cards_title": "Kit psicológico de autocuidado laboral",
+            "tool_cards": [
+                {
+                    "icon": "heart-pulse",
+                    "title": "Chequeo de 60 segundos",
+                    "summary": "Una pausa breve para ubicar cómo estás.",
+                    "body": "Antes de seguir con otra tarea, pregúntate: ¿cómo está mi cuerpo?, ¿qué emoción predomina?, ¿qué necesito para continuar con cuidado?",
+                    "tips": [
+                        "Respira profundo tres veces antes de responder un mensaje difícil.",
+                        "Nombra la emoción sin juzgarla: cansancio, presión, enojo, tristeza o calma.",
+                        "Elige una acción pequeña: agua, estiramiento, ordenar prioridades o pedir claridad."
+                    ]
+                },
+                {
+                    "icon": "coffee",
+                    "title": "Pausa consciente",
+                    "summary": "Cinco minutos para bajar revoluciones.",
+                    "body": "Programa una pausa real entre bloques de trabajo. No tiene que ser larga: debe ser intencional.",
+                    "tips": [
+                        "Levántate de la silla y mueve cuello, hombros y manos.",
+                        "Mira un punto lejano para descansar la vista.",
+                        "Evita usar la pausa para revisar más pantallas.",
+                        "Vuelve con una sola prioridad clara."
+                    ]
+                },
+                {
+                    "icon": "users",
+                    "title": "Conversación segura",
+                    "summary": "Cuando algo incomoda, habla con método.",
+                    "body": "Para cuidar el clima laboral, conversa desde hechos observables y acuerdos posibles.",
+                    "tips": [
+                        "Describe el hecho, no etiquetes a la persona.",
+                        "Explica el impacto en el trabajo o en el equipo.",
+                        "Pregunta y escucha antes de cerrar conclusiones.",
+                        "Acuerda una acción concreta y una fecha de revisión."
+                    ]
+                },
+                {
+                    "icon": "sun",
+                    "title": "Límites sanos",
+                    "summary": "Cuidar también es priorizar.",
+                    "body": "Los límites permiten sostener el desempeño sin sacrificar salud. Decir no, pedir plazo o renegociar cargas también puede ser responsable.",
+                    "tips": [
+                        "Diferencia urgente, importante y postergable.",
+                        "Aclara expectativas antes de aceptar una tarea.",
+                        "Evita normalizar jornadas extendidas como única solución.",
+                        "Pide apoyo cuando la carga supere tu capacidad real."
+                    ]
+                }
+            ],
+            "media_title": "Videos, podcasts y accesos de apoyo",
+            "media_sections": [
+                {
+                    "kicker": "YouTube",
+                    "title": "Videos en español para cuidar la salud mental",
+                    "body": "Recursos breves para conversar en equipo o practicar individualmente durante una pausa.",
+                    "items": [
+                        {
+                            "label": "Autocuidado y salud mental",
+                            "description": "Ideas prácticas para reconocer necesidades y cuidar el equilibrio emocional.",
+                            "url": "https://www.youtube.com/results?search_query=autocuidado+salud+mental+laboral+espa%C3%B1ol"
+                        },
+                        {
+                            "label": "Manejo del estrés laboral",
+                            "description": "Videos con herramientas de respiración, organización y regulación emocional.",
+                            "url": "https://www.youtube.com/results?search_query=manejo+del+estr%C3%A9s+laboral+psicolog%C3%ADa+espa%C3%B1ol"
+                        },
+                        {
+                            "label": "Pausas activas y respiración consciente",
+                            "description": "Rutinas sencillas para activar el cuerpo y descansar la mente.",
+                            "url": "https://www.youtube.com/results?search_query=pausas+activas+respiraci%C3%B3n+consciente+estr%C3%A9s+laboral"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "Spotify",
+                    "title": "Podcasts para escuchar en una pausa",
+                    "body": "Selección orientada a salud mental, hábitos, calma y herramientas psicológicas en español.",
+                    "items": [
+                        {
+                            "label": "Entiende Tu Mente",
+                            "description": "Psicología cotidiana en episodios cortos y claros.",
+                            "url": "https://open.spotify.com/show/0sGGLIDnnijRPLef7InllD"
+                        },
+                        {
+                            "label": "Psicología al Desnudo",
+                            "description": "Conversaciones sobre emociones, vínculos y bienestar.",
+                            "url": "https://open.spotify.com/show/1TDJJoHWEq7Nbh3yEBOJOj"
+                        },
+                        {
+                            "label": "Durmiendo Podcast",
+                            "description": "Relajación, descanso y hábitos para cerrar el día.",
+                            "url": "https://open.spotify.com/show/1w9Me4TrRiDOuK3OsJ2VAW"
+                        },
+                        {
+                            "label": "Despertando Podcast",
+                            "description": "Reflexiones breves para empezar el día con calma y autocuidado.",
+                            "url": "https://open.spotify.com/show/2nAf8IDQG1sPEwAKdG2DyM"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "Positiva ARL",
+                    "title": "Accesos para usuarios Positiva",
+                    "body": "Enlaces de apoyo para revisar servicios, programas y contenidos de prevención y bienestar disponibles para afiliados y usuarios.",
+                    "items": [
+                        {
+                            "label": "Portal Positiva Compañía de Seguros",
+                            "description": "Sitio oficial con canales, servicios y contenidos institucionales.",
+                            "url": "https://www.positiva.gov.co/"
+                        },
+                        {
+                            "label": "Positivamente a tu lado",
+                            "description": "Plataforma de orientación psicológica y apoyo en salud mental para usuarios.",
+                            "url": "https://positivamente.positiva.gov.co/"
+                        },
+                        {
+                            "label": "Programa Servimos - Positiva",
+                            "description": "Servicios de bienestar promovidos para servidores públicos.",
+                            "url": "https://www.funcionpublica.gov.co/programa-servimos"
+                        },
+                        {
+                            "label": "Positiva Cuida",
+                            "description": "Portal de beneficios y acceso para usuarios de Positiva.",
+                            "url": "https://positivacuida.positiva.gov.co/"
+                        }
+                    ]
+                }
+            ],
+            "game_zone": {
+                "title": "Zona de juegos: cuida tu mente jugando",
+                "intro": "Un espacio breve para volver al cuerpo, activar la atención y recordar hábitos de autocuidado. Úsalo en pausas activas, reuniones de equipo o momentos de alta carga laboral.",
+                "puzzle": {
+                    "title": "Rompecabezas de una pausa saludable",
+                    "body": "Selecciona las piezas que necesitas hoy y arma tu micro-rutina de autocuidado.",
+                    "tiles": [
+                        {
+                            "step": "1",
+                            "label": "Respira",
+                            "hint": "Tres inhalaciones lentas."
+                        },
+                        {
+                            "step": "2",
+                            "label": "Estira",
+                            "hint": "Cuello, hombros y manos."
+                        },
+                        {
+                            "step": "3",
+                            "label": "Hidrata",
+                            "hint": "Un vaso de agua."
+                        },
+                        {
+                            "step": "4",
+                            "label": "Prioriza",
+                            "hint": "Una tarea importante."
+                        }
+                    ]
+                },
+                "riddles": [
+                    {
+                        "question": "No soy vacaciones, pero si me tomas a tiempo vuelves con más claridad. ¿Qué soy?",
+                        "answer": "Una pausa consciente."
+                    },
+                    {
+                        "question": "Cuando aparece, el cuerpo habla: tensión, cansancio, irritación. Si lo escuchas, puedes cuidarte. ¿Qué es?",
+                        "answer": "Una señal de estrés."
+                    },
+                    {
+                        "question": "No es egoísmo: es decir hasta dónde puedo llegar sin romper mi bienestar. ¿Qué es?",
+                        "answer": "Un límite sano."
+                    }
+                ],
+                "word_search": {
+                    "title": "Sopa de letras: palabras que cuidan",
+                    "grid": [
+                        "RESPIRARX",
+                        "CALMAYOGA",
+                        "PAUSAXSOL",
+                        "LIMITESAB",
+                        "APOYOVOZ",
+                        "SUEÑOWELL",
+                        "HABITOSOK",
+                        "MENTEVIDA",
+                        "EQUIPOSER"
+                    ],
+                    "words": [
+                        "RESPIRAR",
+                        "PAUSA",
+                        "LIMITES",
+                        "APOYO",
+                        "SUEÑO",
+                        "HABITOS",
+                        "CALMA"
+                    ]
+                }
+            },
+            "actions": [
+                {
+                    "label": "Volver a Bienestar Laboral",
+                    "url": "pages/bienestar.php"
+                }
+            ]
+        },
+        "herramientas-liderazgo": {
+            "title": "Herramientas de Liderazgo",
+            "section": "Desarrollo Profesional",
+            "subtitle": "Recursos prácticos para liderar con claridad, empatía y propósito.",
+            "image_url": "assets/uploads/herramientas-liderazgo.png",
+            "accent": "#007C72",
+            "intro": "El liderazgo se entrena en conversaciones cotidianas, decisiones responsables y hábitos de equipo. Este espacio reúne piezas prácticas para convertir buenas intenciones en acciones visibles dentro de Unitrópico.",
+            "blocks": [
+                {
+                    "title": "Liderar sin esperar el cargo",
+                    "body": "El liderazgo aparece cuando alguien ayuda a ordenar el trabajo, cuidar el clima, escuchar con atención y mover una conversación hacia soluciones."
+                },
+                {
+                    "title": "Comunicación que moviliza",
+                    "body": "Antes de pedir resultados, aclara propósito, criterios de éxito, responsables, tiempos y acuerdos. Un equipo alineado reduce reprocesos y aumenta confianza."
+                },
+                {
+                    "title": "Decisiones con criterio",
+                    "body": "Una buena decisión combina datos, contexto humano, ética institucional y seguimiento. Decide, comunica, mide y ajusta."
+                },
+                {
+                    "title": "Cuidado del equipo",
+                    "body": "Un líder efectivo protege la energía del equipo: reconoce avances, distribuye cargas, conversa a tiempo y evita normalizar urgencias permanentes."
+                }
+            ],
+            "tool_cards_title": "Piezas gráficas y consejos rápidos",
+            "tool_cards": [
+                {
+                    "icon": "users",
+                    "title": "Mapa 1:1 para conversaciones difíciles",
+                    "summary": "Una ruta de cuatro pasos para hablar sin atacar.",
+                    "body": "Úsalo cuando necesites corregir, pedir claridad o resolver tensión con una persona del equipo.",
+                    "tips": [
+                        "Hecho: describe lo observable sin juicios.",
+                        "Impacto: explica qué cambia en el trabajo o en el equipo.",
+                        "Escucha: pregunta qué ocurrió y qué necesita la otra persona.",
+                        "Acuerdo: define una acción concreta, responsable y fecha de revisión."
+                    ]
+                },
+                {
+                    "icon": "clipboard-check",
+                    "title": "Tablero de decisiones",
+                    "summary": "Evita reuniones largas y acuerdos ambiguos.",
+                    "body": "Antes de cerrar una reunión, deja cada decisión en una frase verificable.",
+                    "tips": [
+                        "Qué se decidió y por qué.",
+                        "Quién ejecuta y quién acompaña.",
+                        "Fecha límite y criterio de éxito.",
+                        "Riesgo principal y plan de contingencia."
+                    ]
+                },
+                {
+                    "icon": "heart",
+                    "title": "Semáforo del clima laboral",
+                    "summary": "Detecta señales tempranas de desgaste.",
+                    "body": "Revisa semanalmente el estado del equipo con tres señales sencillas.",
+                    "tips": [
+                        "Verde: energía estable, acuerdos claros y colaboración fluida.",
+                        "Amarillo: retrasos, silencios, confusión o irritabilidad frecuente.",
+                        "Rojo: sobrecarga sostenida, conflictos abiertos o pérdida de confianza."
+                    ]
+                },
+                {
+                    "icon": "trending-up",
+                    "title": "Ritual de mejora continua",
+                    "summary": "15 minutos para aprender sin culpar.",
+                    "body": "Al final de una actividad importante, reúne al equipo y registra aprendizajes accionables.",
+                    "tips": [
+                        "Qué funcionó y debemos repetir.",
+                        "Qué nos frenó y podemos simplificar.",
+                        "Qué decisión tomaríamos distinto.",
+                        "Qué experimento probaremos la próxima semana."
+                    ]
+                },
+                {
+                    "icon": "sparkles",
+                    "title": "Reconocimiento inteligente",
+                    "summary": "Reconocer bien también es liderar.",
+                    "body": "El reconocimiento debe ser específico para que refuerce comportamientos útiles.",
+                    "tips": [
+                        "Nombra la acción concreta, no solo la actitud.",
+                        "Explica el impacto en usuarios, compañeros o resultados.",
+                        "Hazlo oportuno, breve y sincero.",
+                        "Reconoce avances pequeños, no únicamente logros finales."
+                    ]
+                },
+                {
+                    "icon": "shield-check",
+                    "title": "Filtro ético de liderazgo",
+                    "summary": "Una pausa antes de decidir.",
+                    "body": "Cuando una decisión afecte a otros, pasa por este filtro antes de comunicarla.",
+                    "tips": [
+                        "¿Es transparente y explicable?",
+                        "¿Respeta derechos y evita favoritismos?",
+                        "¿Usa responsablemente recursos públicos?",
+                        "¿Fortalece la confianza institucional?"
+                    ]
+                }
+            ],
+            "media_title": "Videos y podcasts recomendados",
+            "media_sections": [
+                {
+                    "kicker": "YouTube",
+                    "title": "Videos para ver en equipo",
+                    "body": "Selección para abrir conversaciones sobre comunicación, liderazgo ético, trabajo en equipo y servicio público.",
+                    "items": [
+                        {
+                            "label": "Comunicación Asertiva - Patricia Lammle",
+                            "description": "Para mejorar conversaciones, feedback y acuerdos.",
+                            "url": "https://www.youtube.com/watch?v=tTqzpifzbN8"
+                        },
+                        {
+                            "label": "Liderazgo Ético y toma de decisiones",
+                            "description": "Enfoque útil para equipos del sector público.",
+                            "url": "https://www.youtube.com/watch?v=8UTcJdASsro"
+                        },
+                        {
+                            "label": "Comunicación y Empatía para Inspirar",
+                            "description": "Ideas para conectar mejor con equipos y usuarios.",
+                            "url": "https://www.youtube.com/watch?v=GDMfhGe2VY0"
+                        },
+                        {
+                            "label": "Liderazgo en el Sector Público",
+                            "description": "Herramientas para gestión pública y toma de decisiones.",
+                            "url": "https://www.youtube.com/watch?v=5vU2DLGTRJg"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "Spotify",
+                    "title": "Podcast para aprender en movimiento",
+                    "body": "Programas para escuchar camino al trabajo, en pausas activas o como disparador de conversación en equipos.",
+                    "items": [
+                        {
+                            "label": "Liderazgo y Comunicación",
+                            "description": "Motivación, innovación, comunicación y equipos.",
+                            "url": "https://open.spotify.com/show/7zbq5Oh6j24JWzDBlgPiJm"
+                        },
+                        {
+                            "label": "Ideas Sobre Liderazgo",
+                            "description": "Herramientas y mejores prácticas para líderes.",
+                            "url": "https://open.spotify.com/show/5OYdjqvMFjByU3IvRKaQSB"
+                        },
+                        {
+                            "label": "Conversaciones para líderes",
+                            "description": "Reflexiones y herramientas para liderar mejor.",
+                            "url": "https://open.spotify.com/show/6aW69J1lhoYn5EdfdjaRQd"
+                        },
+                        {
+                            "label": "Liderar - De ser un grupo a ser un equipo",
+                            "description": "Comunicación efectiva y conversión de grupos en equipos.",
+                            "url": "https://open.spotify.com/show/0Qms2W2edqrH0EJJo5y8k4"
+                        }
+                    ]
+                },
+                {
+                    "kicker": "TED",
+                    "title": "Charlas para profundizar",
+                    "body": "Recursos complementarios con foco en comunicación, equipos sostenibles y liderazgo como práctica diaria.",
+                    "items": [
+                        {
+                            "label": "Comunicación para el trabajo en equipo",
+                            "description": "Charla TED sobre coordinación y colaboración.",
+                            "url": "https://www.ted.com/talks/comunicacion_para_el_trabajo_en_equipo"
+                        },
+                        {
+                            "label": "Cómo desarrollar equipos exitosos y sostenibles",
+                            "description": "Consejos para sostener equipos en el tiempo.",
+                            "url": "https://www.ted.com/talks/jorge_serratos_como_desarrollar_equipos_exitosos_y_sostenibles_en_el_tiempo"
+                        },
+                        {
+                            "label": "Comunicación como herramienta de liderazgo",
+                            "description": "Charla sobre influencia, claridad y conexión.",
+                            "url": "https://www.ted.com/talks/edgar_zuart_comunicacion_como_herramienta_de_liderazgo"
+                        }
+                    ]
+                }
+            ],
+            "actions": [
+                {
+                    "label": "Volver a Desarrollo Profesional",
+                    "url": "pages/desarrollo.php"
+                }
+            ]
+        }
+    },
+    "comments": [
+        {
+            "id": "cm_6a511df1475399.23927263",
+            "name": "Carlos C",
+            "message": "El bienestar somos todos",
+            "rating": 5,
+            "emoji": "💬",
+            "parent_id": "cm_6a511da6e764a4.65404895",
+            "created_at": "2026-07-10T16:29:37+00:00",
+            "is_active": true
+        },
+        {
+            "id": "cm_6a511ddf2ae4d5.48732646",
+            "name": "Talibrí",
+            "message": "Genial! es una gestión de TH",
+            "rating": 5,
+            "emoji": "💬",
+            "parent_id": "cm_6a511da6e764a4.65404895",
+            "created_at": "2026-07-10T16:29:19+00:00",
+            "is_active": true
+        },
+        {
+            "id": "cm_6a511da6e764a4.65404895",
+            "name": "Rosaura Cardenas",
+            "message": "Me gusta el estilo",
+            "rating": 5,
+            "emoji": "💚",
+            "parent_id": "",
+            "created_at": "2026-07-10T16:28:22+00:00",
+            "is_active": true
+        },
+        {
+            "id": "cm_6a511d8107ce44.18244233",
+            "name": "Talibrí",
+            "message": "Gracias",
+            "rating": 5,
+            "emoji": "💬",
+            "parent_id": "cm_6a511b66e64e26.53441957",
+            "created_at": "2026-07-10T16:27:45+00:00",
+            "is_active": true
+        },
+        {
+            "id": "cm_6a511b66e64e26.53441957",
+            "name": "Juan Machado",
+            "message": "Está  genial el cambio que realizaron. Gracias",
+            "rating": 5,
+            "emoji": "💚",
+            "created_at": "2026-07-10T16:18:46+00:00",
+            "is_active": true
+        }
+    ],
+    "analytics": {
+        "monthly": {
+            "2026-07": {
+                "visits": 79,
+                "visitors": {
+                    "0d207b99434f3bb0b4": true,
+                    "4ba67bdf6f4a63fefa": true,
+                    "678ad175373e8a36f3": true
+                },
+                "sections": {
+                    "Inicio": {
+                        "visits": 18,
+                        "visitors": {
+                            "0d207b99434f3bb0b4": true,
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/index.php"
+                    },
+                    "Talento Humano": {
+                        "visits": 15,
+                        "visitors": {
+                            "0d207b99434f3bb0b4": true,
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/pages/talento-humano.php"
+                    },
+                    "Desarrollo": {
+                        "visits": 14,
+                        "visitors": {
+                            "0d207b99434f3bb0b4": true,
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/pages/desarrollo.php"
+                    },
+                    "Bienestar": {
+                        "visits": 11,
+                        "visitors": {
+                            "0d207b99434f3bb0b4": true,
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/pages/bienestar.php"
+                    },
+                    "Pageweb Th": {
+                        "visits": 11,
+                        "visitors": {
+                            "4ba67bdf6f4a63fefa": true,
+                            "678ad175373e8a36f3": true
+                        },
+                        "path": "/pageweb_th/"
+                    },
+                    "Calendario": {
+                        "visits": 8,
+                        "visitors": {
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/pages/calendario.php"
+                    },
+                    "Politica Estimulos": {
+                        "visits": 2,
+                        "visitors": {
+                            "4ba67bdf6f4a63fefa": true
+                        },
+                        "path": "/pageweb_th/pages/programa.php?slug=politica-estimulos"
+                    }
+                },
+                "days": {
+                    "2026-07-10": 7,
+                    "2026-07-14": 72
+                }
+            }
+        }
+    }
+}
