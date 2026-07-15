@@ -635,6 +635,7 @@ body.page-leaving .topbar {
   transition: opacity 0.26s ease, transform 0.26s ease;
   pointer-events: none;
 }
+.service-card .card-description-overlay p,
 .mega-card .card-description-overlay p {
   color: #fff;
   font-size: 14px;
@@ -2503,7 +2504,8 @@ body.page-leaving .topbar {
     border-top: 1px solid var(--border);
     padding: 14px 16px;
   }
-  .card-description-overlay p {
+  .service-card .card-description-overlay p,
+  .mega-card .card-description-overlay p {
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
