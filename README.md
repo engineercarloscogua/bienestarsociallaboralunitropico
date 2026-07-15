@@ -9,6 +9,8 @@ Portal público + panel admin autogestionable en PHP, sin base de datos por ahor
 - Permiso de escritura para `data/` y `assets/uploads/`.
 - Extensiones PHP estándar: `json`, `session`, `fileinfo`.
 - El archivo `data/security.json` se usa para los límites de seguridad y debe permanecer dentro de `data/`.
+- `data/data.json` y `data/security.json` son archivos persistentes de ejecución y no se versionan en Git.
+- Si `data/data.json` no existe en una instalación nueva, el portal lo crea desde `data/data.example.json`.
 
 ## Subida a cPanel
 
@@ -64,5 +66,11 @@ El proyecto incluye `.htaccess` para:
 ## Importante
 
 No requiere MySQL todavía. Los datos se guardan en `data/data.json`, por eso esa carpeta debe poder escribirse desde PHP.
+
+`data/data.json` contiene comentarios, credenciales, estadísticas y cambios realizados desde el panel. Está excluido de Git para que los despliegues desde GitHub no lo sobrescriban. `data/data.example.json` es solamente la plantilla para instalaciones nuevas.
+
+Los cambios de contenido que deban llegar a instalaciones existentes se guardan en `data/migrations/`. El portal aplica cada migración una sola vez y conserva el resto de los datos de producción.
+
+Antes del primer despliegue que adopte esta estructura, descarga una copia del `data/data.json` existente en producción. Después del despliegue, confirma que el archivo siga en `data/`; si fue eliminado, restaura la copia antes de usar el panel.
 
 Cuando en el futuro migren a base de datos, la interfaz del admin puede conservarse y cambiarse solo la capa de almacenamiento.

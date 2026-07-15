@@ -83,6 +83,50 @@ require_once __DIR__ . '/../includes/header.php';
   </section>
   <?php endif; ?>
 
+  <?php if (!empty($program['embeds'])): ?>
+  <section class="program-embeds" aria-labelledby="program-embeds-title">
+    <div class="section-header">
+      <h2 class="section-title" id="program-embeds-title">
+        <span class="icon-badge" style="background:rgba(0,107,91,0.10);color:<?= e($accent) ?>;"><?= icon('calendar', '', 20) ?></span>
+        Atención y agendamiento
+      </h2>
+    </div>
+
+    <div class="program-embed-list">
+      <?php foreach ($program['embeds'] as $embed):
+        $embedType = in_array(($embed['type'] ?? ''), ['calendar', 'form'], true) ? $embed['type'] : 'resource';
+        $embedUrl = sanitizeContentUrl((string)($embed['embed_url'] ?? ''), false);
+        $externalUrl = sanitizeContentUrl((string)($embed['external_url'] ?? $embedUrl), false);
+        if ($embedUrl === '') continue;
+      ?>
+      <article class="program-embed-card program-embed-card-<?= e($embedType) ?>">
+        <div class="program-embed-copy">
+          <span class="benefit-kicker"><?= $embedType === 'calendar' ? 'Agenda de citas' : 'Formulario institucional' ?></span>
+          <h2><?= e($embed['title'] ?? 'Recurso de atención') ?></h2>
+          <?php if (!empty($embed['description'])): ?>
+          <p><?= e($embed['description']) ?></p>
+          <?php endif; ?>
+          <?php if ($externalUrl !== ''): ?>
+          <a class="detail-card-link" href="<?= e($externalUrl) ?>" target="_blank" rel="noopener noreferrer">
+            <?= icon('external-link', '', 15) ?>
+            <?= e($embed['action_label'] ?? 'Abrir en una pestaña nueva') ?>
+          </a>
+          <?php endif; ?>
+        </div>
+        <div class="program-embed-frame">
+          <iframe
+            src="<?= e($embedUrl) ?>"
+            title="<?= e($embed['title'] ?? 'Recurso de atención') ?>"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      </article>
+      <?php endforeach; ?>
+    </div>
+  </section>
+  <?php endif; ?>
+
   <?php if (!empty($program['tool_cards'])): ?>
   <section class="toolkit-section">
     <div class="section-header">

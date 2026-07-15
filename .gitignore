@@ -12,6 +12,10 @@
 tmp/*
 !tmp/.htaccess
 
+# Datos persistentes de producción
+/data/data.json
+/data/security.json
+
 # Sistema operativo y editores
 .DS_Store
 Thumbs.db

@@ -1359,6 +1359,57 @@ body.page-leaving .topbar {
   gap: 12px;
   margin-top: 4px;
 }
+
+.program-embeds {
+  margin: 8px 0 34px;
+}
+.program-embed-list {
+  display: grid;
+  gap: 22px;
+}
+.program-embed-card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(26, 49, 42, 0.07);
+}
+.program-embed-copy {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.program-embed-copy h2 {
+  margin: 8px 0;
+  color: var(--primary);
+  font-family: 'Nunito Sans', Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+.program-embed-copy p {
+  max-width: 850px;
+  margin-bottom: 14px;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+.program-embed-frame {
+  min-height: 720px;
+  background: #f5f7f5;
+}
+.program-embed-card-form .program-embed-frame {
+  min-height: 900px;
+}
+.program-embed-frame iframe {
+  display: block;
+  width: 100%;
+  height: 720px;
+  border: 0;
+  background: #fff;
+}
+.program-embed-card-form .program-embed-frame iframe {
+  height: 900px;
+}
 .toolkit-section,
 .media-library-section {
   margin: 8px 0 34px;
@@ -2435,6 +2486,22 @@ body.page-leaving .topbar {
   .pdf-viewer-frame,
   .pdf-viewer-frame iframe {
     min-height: 420px;
+  }
+  .program-embed-copy {
+    padding: 18px;
+  }
+  .program-embed-copy h2 {
+    font-size: 18px;
+  }
+  .program-embed-frame,
+  .program-embed-frame iframe {
+    min-height: 680px;
+    height: 680px;
+  }
+  .program-embed-card-form .program-embed-frame,
+  .program-embed-card-form .program-embed-frame iframe {
+    min-height: 820px;
+    height: 820px;
   }
   .integrity-value-card summary {
     grid-template-columns: auto 1fr;

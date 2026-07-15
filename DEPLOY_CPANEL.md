@@ -8,9 +8,22 @@
 - Mantener estos archivos:
   - `.htaccess`
   - `data/.htaccess`
-  - `data/security.json`
+  - `data/data.example.json`
   - `includes/.htaccess`
   - `assets/uploads/.htaccess`
+
+## Migración inicial desde la versión anterior
+
+Antes de desplegar por primera vez esta versión desde GitHub:
+
+1. Descarga desde el Administrador de archivos de Hostinger una copia de `data/data.json`.
+2. Ejecuta el despliegue desde GitHub.
+3. Comprueba que `data/data.json` siga presente en Hostinger.
+4. Si el despliegue lo eliminó, vuelve a subir la copia a `data/data.json` antes de abrir el panel.
+
+Este respaldo único conserva comentarios, contraseñas, estadísticas y cambios hechos desde el administrador. En los siguientes despliegues Git ignorará ese archivo.
+
+Las actualizaciones versionadas de contenido ubicadas en `data/migrations/` se aplicarán automáticamente una sola vez al abrir el portal.
 
 ## Permisos recomendados
 

@@ -5,7 +5,9 @@
 // ============================================================
 
 define('DATA_FILE', __DIR__ . '/../data/data.json');
+define('DATA_TEMPLATE_FILE', __DIR__ . '/../data/data.example.json');
 define('DATA_LOCK_FILE', __DIR__ . '/../data/data.lock');
+define('DATA_MIGRATIONS_DIR', __DIR__ . '/../data/migrations');
 define('SECURITY_STATE_FILE', __DIR__ . '/../data/security.json');
 define('SECURITY_LOCK_FILE', __DIR__ . '/../data/security.lock');
 
@@ -64,12 +66,76 @@ function withFileLock(string $lockFile, int $operation, callable $callback) {
 }
 
 /**
+ * Crear el archivo persistente solo en instalaciones nuevas.
+ * data/data.json no se versiona para que los despliegues no sobrescriban
+ * comentarios, credenciales, estadísticas ni cambios hechos desde el admin.
+ */
+function ensureDataFile(): void {
+    if (file_exists(DATA_FILE)) return;
+
+    withFileLock(DATA_LOCK_FILE, LOCK_EX, function (): void {
+        if (file_exists(DATA_FILE)) return;
+        if (!file_exists(DATA_TEMPLATE_FILE)) {
+            throw new RuntimeException('No se encuentra la plantilla data/data.example.json.');
+        }
+
+        $initialData = decodeJsonFile(DATA_TEMPLATE_FILE);
+        if (!$initialData || !writeJsonAtomically(DATA_FILE, $initialData)) {
+            throw new RuntimeException('No fue posible inicializar data/data.json. Verifica los permisos de data/.');
+        }
+    });
+}
+
+/**
+ * Aplicar cambios de contenido versionados sin reemplazar los datos vivos.
+ * Cada migración se registra dentro del propio JSON y se ejecuta una sola vez.
+ */
+function runDataMigrations(): void {
+    static $completed = false;
+    if ($completed || !is_dir(DATA_MIGRATIONS_DIR)) return;
+
+    withFileLock(DATA_LOCK_FILE, LOCK_EX, function (): void {
+        $data = decodeJsonFile(DATA_FILE);
+        $applied = array_values(array_filter((array)($data['_meta']['migrations'] ?? []), 'is_string'));
+        $migrationFiles = glob(DATA_MIGRATIONS_DIR . '/*.php') ?: [];
+        sort($migrationFiles, SORT_STRING);
+        $changed = false;
+
+        foreach ($migrationFiles as $migrationFile) {
+            $migrationId = basename($migrationFile, '.php');
+            if (in_array($migrationId, $applied, true)) continue;
+
+            $migration = require $migrationFile;
+            if (!is_callable($migration)) {
+                throw new RuntimeException('Migración de datos inválida: ' . $migrationId);
+            }
+
+            $migration($data);
+            $applied[] = $migrationId;
+            $changed = true;
+        }
+
+        if ($changed) {
+            $data['_meta']['migrations'] = $applied;
+            if (!writeJsonAtomically(DATA_FILE, $data)) {
+                throw new RuntimeException('No fue posible aplicar las migraciones de datos.');
+            }
+        }
+    });
+
+    $completed = true;
+}
+
+function ensureDataReady(): void {
+    ensureDataFile();
+    runDataMigrations();
+}
+
+/**
  * Leer todos los datos del JSON
  */
 function readData(): array {
-    if (!file_exists(DATA_FILE)) {
-        die('Error: No se encuentra data/data.json. Verifica la instalación.');
-    }
+    ensureDataReady();
     return withFileLock(DATA_LOCK_FILE, LOCK_SH, fn() => decodeJsonFile(DATA_FILE));
 }
 
@@ -77,6 +143,7 @@ function readData(): array {
  * Guardar datos de vuelta al JSON (solo para el admin)
  */
 function saveData(array $data): bool {
+    ensureDataReady();
     return withFileLock(DATA_LOCK_FILE, LOCK_EX, function () use ($data): bool {
         return writeJsonAtomically(DATA_FILE, $data);
     });
@@ -86,6 +153,7 @@ function saveData(array $data): bool {
  * Actualizar el JSON dentro de una única transacción protegida por bloqueo.
  */
 function updateData(callable $mutator) {
+    ensureDataReady();
     return withFileLock(DATA_LOCK_FILE, LOCK_EX, function () use ($mutator) {
         $data = decodeJsonFile(DATA_FILE);
         $result = $mutator($data);
