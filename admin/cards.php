@@ -121,6 +121,7 @@ usort($imageFiles, fn($a, $b) => strcasecmp(basename($a), basename($b)));
       <a href="<?= $base ?>/admin/cards.php" class="admin-nav-item active"><?= icon('layers','',16) ?> Tarjetas / Servicios</a>
       <a href="<?= $base ?>/admin/pages.php" class="admin-nav-item"><?= icon('layers','',16) ?> Subpáginas</a>
       <a href="<?= $base ?>/admin/media.php" class="admin-nav-item"><?= icon('image','',16) ?> Imágenes</a>
+      <a href="<?= $base ?>/admin/database.php" class="admin-nav-item"><?= icon('settings','',16) ?> Base de datos</a>
       <span class="admin-nav-label">Portal</span>
       <a href="<?= $base ?>/index.php" class="admin-nav-item" target="_blank"><?= icon('external-link','',16) ?> Ver Sitio</a>
     </nav>

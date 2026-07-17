@@ -2,7 +2,7 @@
 
 ## Resumen
 
-El proyecto es PHP plano con HTML, CSS y JavaScript vanilla. No usa base de datos. El contenido se guarda en `data/data.json`.
+El proyecto es PHP plano con HTML, CSS y JavaScript vanilla. Dispone de almacenamiento dual: JSON para transición y MariaDB/MySQL mediante PDO para producción.
 
 ## Servidor local
 
@@ -12,6 +12,12 @@ El proyecto es PHP plano con HTML, CSS y JavaScript vanilla. No usa base de dato
 
 ## Cambios recientes
 
+- Se añadió un esquema MariaDB normalizado para configuración, páginas, tarjetas, programas, administrador, comentarios, analítica, seguridad y migraciones.
+- Los bloques multimedia detectan e incrustan videos de YouTube y archivos de video compartidos desde Google Drive.
+- Se implementó conexión PDO mediante archivo privado fuera del repositorio, transacciones InnoDB y bloqueos contra escrituras concurrentes.
+- Se creó `admin/database.php` para verificar conexión, importar el JSON y comparar conteos antes de activar MariaDB.
+- Se creó `admin/recover.php` para restablecer el acceso mediante un token privado, limitado y de un solo uso.
+- Las visitas, comentarios, límites de seguridad y cambios de contraseña tienen operaciones directas optimizadas en MariaDB.
 - Se cambió el sitio público de estilo oscuro a estilo claro institucional.
 - Se aplicó paleta basada en manual de identidad: verde institucional, bronce/oliva, blanco y neutros.
 - Se vinculó el escudo real en el sidebar.
@@ -52,5 +58,7 @@ El proyecto es PHP plano con HTML, CSS y JavaScript vanilla. No usa base de dato
 - Todos los `.php` pasaron `php -l`.
 - Páginas públicas principales respondieron HTTP `200`.
 - Las seis subpáginas dinámicas de programa respondieron HTTP `200`.
+- La migración JSON -> MariaDB -> arreglo PHP conserva exactamente los datos.
+- Una prueba con 16 escrituras concurrentes de analítica conservó las 16 actualizaciones.
 
 Relacionado: [[03 - Identidad visual]], [[04 - Autogestion CMS]], [[06 - Bitacora]]

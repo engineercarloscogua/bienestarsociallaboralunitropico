@@ -5,6 +5,8 @@
 .env
 .env.*
 !.env.example
+/config/database.local.php
+/private/
 
 # Archivos generados durante la ejecución
 *.log
@@ -15,6 +17,10 @@ tmp/*
 # Datos persistentes de producción
 /data/data.json
 /data/security.json
+
+# Archivos cargados desde el panel (los assets ya versionados siguen en Git)
+/assets/uploads/*
+!/assets/uploads/.htaccess
 
 # Sistema operativo y editores
 .DS_Store

@@ -80,6 +80,11 @@ $base = baseUrl();
     <p style="font-size:11px;color:var(--text-m);text-align:center;">
       <a href="<?= $base ?>/index.php" style="color:var(--accent);">← Volver al portal</a>
     </p>
+    <?php if (adminRecoveryEnabled()): ?>
+    <p style="font-size:11px;color:var(--text-m);text-align:center;margin-top:8px;">
+      <a href="<?= $base ?>/admin/recover.php" style="color:var(--accent);">Recuperar acceso administrativo</a>
+    </p>
+    <?php endif; ?>
   </div>
 </div>
 </body>

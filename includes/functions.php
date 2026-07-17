@@ -1,8 +1,10 @@
 <?php
 // ============================================================
 // includes/functions.php — Funciones helpers del portal
-// Usa data/data.json en lugar de MySQL — sin BD requerida
+// Almacenamiento intercambiable: JSON para transición o MariaDB mediante PDO.
 // ============================================================
+
+require_once __DIR__ . '/database-storage.php';
 
 define('DATA_FILE', __DIR__ . '/../data/data.json');
 define('DATA_TEMPLATE_FILE', __DIR__ . '/../data/data.example.json');
@@ -86,85 +88,134 @@ function ensureDataFile(): void {
     });
 }
 
+function applyPendingDataMigrations(array &$data): bool {
+    if (!is_dir(DATA_MIGRATIONS_DIR)) return false;
+
+    $applied = array_values(array_filter((array)($data['_meta']['migrations'] ?? []), 'is_string'));
+    $migrationFiles = glob(DATA_MIGRATIONS_DIR . '/*.php') ?: [];
+    sort($migrationFiles, SORT_STRING);
+    $changed = false;
+
+    foreach ($migrationFiles as $migrationFile) {
+        $migrationId = basename($migrationFile, '.php');
+        if (in_array($migrationId, $applied, true)) continue;
+
+        $migration = require $migrationFile;
+        if (!is_callable($migration)) {
+            throw new RuntimeException('Migración de datos inválida: ' . $migrationId);
+        }
+
+        $migration($data);
+        $applied[] = $migrationId;
+        $changed = true;
+    }
+
+    if ($changed) $data['_meta']['migrations'] = $applied;
+    return $changed;
+}
+
 /**
- * Aplicar cambios de contenido versionados sin reemplazar los datos vivos.
- * Cada migración se registra dentro del propio JSON y se ejecuta una sola vez.
+ * Aplica cambios de contenido versionados una sola vez en el backend activo.
  */
 function runDataMigrations(): void {
     static $completed = false;
-    if ($completed || !is_dir(DATA_MIGRATIONS_DIR)) return;
+    if ($completed) return;
 
-    withFileLock(DATA_LOCK_FILE, LOCK_EX, function (): void {
-        $data = decodeJsonFile(DATA_FILE);
-        $applied = array_values(array_filter((array)($data['_meta']['migrations'] ?? []), 'is_string'));
+    if (storageDriver() === 'mysql') {
+        $applied = databaseAppliedDataMigrations();
         $migrationFiles = glob(DATA_MIGRATIONS_DIR . '/*.php') ?: [];
-        sort($migrationFiles, SORT_STRING);
-        $changed = false;
-
+        $hasPendingMigration = false;
         foreach ($migrationFiles as $migrationFile) {
-            $migrationId = basename($migrationFile, '.php');
-            if (in_array($migrationId, $applied, true)) continue;
-
-            $migration = require $migrationFile;
-            if (!is_callable($migration)) {
-                throw new RuntimeException('Migración de datos inválida: ' . $migrationId);
+            if (!in_array(basename($migrationFile, '.php'), $applied, true)) {
+                $hasPendingMigration = true;
+                break;
             }
-
-            $migration($data);
-            $applied[] = $migrationId;
-            $changed = true;
         }
-
-        if ($changed) {
-            $data['_meta']['migrations'] = $applied;
-            if (!writeJsonAtomically(DATA_FILE, $data)) {
+        if ($hasPendingMigration) {
+            databaseUpdateDataIfChanged(fn(array &$data): bool => applyPendingDataMigrations($data));
+        }
+    } else {
+        withFileLock(DATA_LOCK_FILE, LOCK_EX, function (): void {
+            $data = decodeJsonFile(DATA_FILE);
+            if (applyPendingDataMigrations($data) && !writeJsonAtomically(DATA_FILE, $data)) {
                 throw new RuntimeException('No fue posible aplicar las migraciones de datos.');
             }
-        }
-    });
+        });
+    }
 
     $completed = true;
 }
 
 function ensureDataReady(): void {
-    ensureDataFile();
+    if (storageDriver() === 'mysql') {
+        if (!databaseSchemaIsReady()) {
+            throw new RuntimeException('La base MariaDB no tiene el esquema del portal. Importa database/schema.sql.');
+        }
+    } else {
+        ensureDataFile();
+    }
     runDataMigrations();
 }
 
 /**
- * Leer todos los datos del JSON
+ * Leer todos los datos del almacenamiento activo.
  */
 function readData(): array {
     ensureDataReady();
-    return withFileLock(DATA_LOCK_FILE, LOCK_SH, fn() => decodeJsonFile(DATA_FILE));
+    if (isset($GLOBALS['portal_data_cache']) && is_array($GLOBALS['portal_data_cache'])) {
+        return $GLOBALS['portal_data_cache'];
+    }
+    $data = storageDriver() === 'mysql'
+        ? databaseReadData()
+        : withFileLock(DATA_LOCK_FILE, LOCK_SH, fn() => decodeJsonFile(DATA_FILE));
+    $GLOBALS['portal_data_cache'] = $data;
+    return $data;
 }
 
 /**
- * Guardar datos de vuelta al JSON (solo para el admin)
+ * Guardar datos en el almacenamiento activo (solo para el admin).
  */
 function saveData(array $data): bool {
     ensureDataReady();
-    return withFileLock(DATA_LOCK_FILE, LOCK_EX, function () use ($data): bool {
+    $saved = storageDriver() === 'mysql'
+        ? databaseSaveData($data)
+        : withFileLock(DATA_LOCK_FILE, LOCK_EX, function () use ($data): bool {
         return writeJsonAtomically(DATA_FILE, $data);
     });
+    if ($saved) $GLOBALS['portal_data_cache'] = $data;
+    return $saved;
 }
 
 /**
- * Actualizar el JSON dentro de una única transacción protegida por bloqueo.
+ * Actualizar dentro de una única transacción protegida por bloqueo.
  */
 function updateData(callable $mutator) {
     ensureDataReady();
+    if (storageDriver() === 'mysql') {
+        return databaseUpdateData(function (array &$data) use ($mutator) {
+            $result = $mutator($data);
+            $GLOBALS['portal_data_cache'] = $data;
+            return $result;
+        });
+    }
     return withFileLock(DATA_LOCK_FILE, LOCK_EX, function () use ($mutator) {
         $data = decodeJsonFile(DATA_FILE);
         $result = $mutator($data);
         if (!writeJsonAtomically(DATA_FILE, $data)) {
             throw new RuntimeException('No fue posible guardar data/data.json.');
         }
+        $GLOBALS['portal_data_cache'] = $data;
         return $result;
     });
 }
 
 function updateSecurityState(callable $mutator) {
+    if (storageDriver() === 'mysql') {
+        if (!databaseSchemaIsReady()) {
+            throw new RuntimeException('La base MariaDB no tiene el esquema del portal.');
+        }
+        return databaseUpdateSecurityState($mutator);
+    }
     return withFileLock(SECURITY_LOCK_FILE, LOCK_EX, function () use ($mutator) {
         $state = decodeJsonFile(SECURITY_STATE_FILE);
         $result = $mutator($state);
@@ -249,6 +300,68 @@ function sanitizeContentUrl(string $url, bool $allowRelative = true): string {
 }
 
 /**
+ * Convertir enlaces compartidos de YouTube y Google Drive en reproductores
+ * seguros. Otros dominios no se incrustan y conservan su enlace normal.
+ */
+function videoEmbedData(string $url): ?array {
+    $externalUrl = sanitizeContentUrl($url, false);
+    if ($externalUrl === '') return null;
+
+    $parts = parse_url($externalUrl);
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    $host = strtolower((string)($parts['host'] ?? ''));
+    $path = (string)($parts['path'] ?? '');
+    if ($scheme !== 'https' || $host === '') return null;
+
+    $youtubeHosts = [
+        'youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com',
+        'youtube-nocookie.com', 'www.youtube-nocookie.com', 'youtu.be',
+    ];
+    if (in_array($host, $youtubeHosts, true)) {
+        $videoId = '';
+        if ($host === 'youtu.be') {
+            $videoId = trim(explode('/', trim($path, '/'))[0] ?? '');
+        } elseif ($path === '/watch') {
+            parse_str((string)($parts['query'] ?? ''), $query);
+            $videoId = trim((string)($query['v'] ?? ''));
+        } elseif (preg_match('~^/(?:embed|shorts|live)/([a-zA-Z0-9_-]{11})(?:/|$)~', $path, $match)) {
+            $videoId = $match[1];
+        }
+
+        if (preg_match('/^[a-zA-Z0-9_-]{11}$/', $videoId)) {
+            return [
+                'provider' => 'youtube',
+                'provider_label' => 'YouTube',
+                'embed_url' => 'https://www.youtube-nocookie.com/embed/' . $videoId,
+                'external_url' => $externalUrl,
+            ];
+        }
+        return null;
+    }
+
+    if ($host === 'drive.google.com' || $host === 'www.drive.google.com') {
+        $fileId = '';
+        if (preg_match('~^/file/d/([a-zA-Z0-9_-]{10,})(?:/|$)~', $path, $match)) {
+            $fileId = $match[1];
+        } else {
+            parse_str((string)($parts['query'] ?? ''), $query);
+            $fileId = trim((string)($query['id'] ?? ''));
+        }
+
+        if (preg_match('/^[a-zA-Z0-9_-]{10,}$/', $fileId)) {
+            return [
+                'provider' => 'drive',
+                'provider_label' => 'Google Drive',
+                'embed_url' => 'https://drive.google.com/file/d/' . $fileId . '/preview',
+                'external_url' => $externalUrl,
+            ];
+        }
+    }
+
+    return null;
+}
+
+/**
  * Obtener todas las páginas activas (para el menú de navegación)
  */
 function getPages(): array {
@@ -321,20 +434,15 @@ function recordAnalyticsVisit(string $visitorId, string $path, string $title = '
     $visitorHash = substr(hash('sha256', $visitorId . '|unitropico-th'), 0, 18);
     $section = analyticsSectionName($path, $title);
 
-    updateData(function (array &$data) use ($month, $day, $visitorHash, $section, $path): void {
-        if (!isset($data['analytics']['monthly']) || !is_array($data['analytics']['monthly'])) {
-            $data['analytics'] = ['monthly' => []];
-        }
-        if (!isset($data['analytics']['monthly'][$month])) {
-            $data['analytics']['monthly'][$month] = [
+    $updateBucket = function (array &$bucket) use ($day, $visitorHash, $section, $path): void {
+        if (!$bucket) {
+            $bucket = [
                 'visits' => 0,
                 'visitors' => [],
                 'sections' => [],
                 'days' => [],
             ];
         }
-
-        $bucket = &$data['analytics']['monthly'][$month];
         $bucket['visits'] = (int)($bucket['visits'] ?? 0) + 1;
         $bucket['visitors'][$visitorHash] = true;
         $bucket['days'][$day] = (int)($bucket['days'][$day] ?? 0) + 1;
@@ -345,6 +453,21 @@ function recordAnalyticsVisit(string $visitorId, string $path, string $title = '
         $bucket['sections'][$section]['visits'] = (int)($bucket['sections'][$section]['visits'] ?? 0) + 1;
         $bucket['sections'][$section]['visitors'][$visitorHash] = true;
         $bucket['sections'][$section]['path'] = $path;
+    };
+
+    ensureDataReady();
+    if (storageDriver() === 'mysql') {
+        databaseUpdateAnalyticsMonth($month, $updateBucket);
+        unset($GLOBALS['portal_data_cache']);
+        return;
+    }
+
+    updateData(function (array &$data) use ($month, $updateBucket): void {
+        if (!isset($data['analytics']['monthly']) || !is_array($data['analytics']['monthly'])) {
+            $data['analytics'] = ['monthly' => []];
+        }
+        if (!isset($data['analytics']['monthly'][$month])) $data['analytics']['monthly'][$month] = [];
+        $updateBucket($data['analytics']['monthly'][$month]);
     });
 }
 
@@ -542,9 +665,57 @@ function passwordPolicyError(string $password): string {
 }
 
 function updateAdminPassword(string $newPassword): int {
+    if (storageDriver() === 'mysql') {
+        ensureDataReady();
+        $credentials = getAdminCredentials();
+        $version = databaseUpdateAdminPassword(
+            (string)($credentials['username'] ?? ''),
+            password_hash($newPassword, PASSWORD_DEFAULT)
+        );
+        unset($GLOBALS['portal_data_cache']);
+        return $version;
+    }
     return updateData(function (array &$data) use ($newPassword): int {
         $data['admin']['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
         $data['admin']['auth_version'] = (int)($data['admin']['auth_version'] ?? 1) + 1;
+        return $data['admin']['auth_version'];
+    });
+}
+
+function adminRecoveryToken(): string {
+    $config = databaseConfig();
+    return trim((string)($config['admin_recovery_token'] ?? ''));
+}
+
+function adminRecoveryEnabled(): bool {
+    return strlen(adminRecoveryToken()) >= 32;
+}
+
+/**
+ * Restablecer la contraseña mediante un token privado de un solo uso.
+ * El hash del token usado viaja con los datos para impedir su reutilización
+ * incluso después de migrar de JSON a MariaDB.
+ */
+function recoverAdminPassword(string $newPassword, string $recoveryToken): int {
+    $configuredToken = adminRecoveryToken();
+    if (strlen($configuredToken) < 32 || !hash_equals($configuredToken, $recoveryToken)) {
+        throw new RuntimeException('El token de recuperación no es válido.');
+    }
+
+    $tokenHash = hash('sha256', $recoveryToken);
+    return updateData(function (array &$data) use ($newPassword, $tokenHash): int {
+        $usedTokens = array_values(array_filter(
+            (array)($data['_meta']['admin_recovery_tokens'] ?? []),
+            'is_string'
+        ));
+        if (in_array($tokenHash, $usedTokens, true)) {
+            throw new RuntimeException('Este token de recuperación ya fue utilizado.');
+        }
+
+        $data['admin']['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+        $data['admin']['auth_version'] = (int)($data['admin']['auth_version'] ?? 1) + 1;
+        $usedTokens[] = $tokenHash;
+        $data['_meta']['admin_recovery_tokens'] = array_slice($usedTokens, -10);
         return $data['admin']['auth_version'];
     });
 }
@@ -620,6 +791,13 @@ function addComment(string $name, string $message, int $rating = 5, string $emoj
         'is_active' => true,
     ];
 
+    if (storageDriver() === 'mysql') {
+        ensureDataReady();
+        databaseInsertComment($comment);
+        unset($GLOBALS['portal_data_cache']);
+        return $comment;
+    }
+
     updateData(function (array &$data) use ($comment): void {
         if (!isset($data['comments']) || !is_array($data['comments'])) $data['comments'] = [];
         array_unshift($data['comments'], $comment);
@@ -631,6 +809,12 @@ function addComment(string $name, string $message, int $rating = 5, string $emoj
  * Eliminar un comentario desde administración.
  */
 function deleteComment(string $commentId): void {
+    if (storageDriver() === 'mysql') {
+        ensureDataReady();
+        databaseDeleteComment($commentId);
+        unset($GLOBALS['portal_data_cache']);
+        return;
+    }
     updateData(function (array &$data) use ($commentId): void {
         if (empty($data['comments']) || !is_array($data['comments'])) return;
         $data['comments'] = array_values(
@@ -643,6 +827,10 @@ function deleteComment(string $commentId): void {
  * Validar si un comentario visible puede recibir respuestas.
  */
 function canReplyToComment(string $commentId): bool {
+    if (storageDriver() === 'mysql') {
+        ensureDataReady();
+        return databaseCanReplyToComment($commentId);
+    }
     $data = readData();
     foreach (($data['comments'] ?? []) as $comment) {
         if (($comment['id'] ?? '') === $commentId && !empty($comment['is_active']) && empty($comment['parent_id'])) {

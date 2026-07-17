@@ -9,7 +9,7 @@ $base      = baseUrl();
 $siteName  = getConfig('site_title', 'Bienestar Social Laboral');
 $adminName = currentAdminName();
 
-// Stats (desde JSON)
+// Estadísticas desde el almacenamiento activo.
 $allCards   = getAllCards();
 $totalCards = count(array_filter($allCards, fn($c) => $c['is_active'] ?? true));
 $totalPages = count(array_filter(readData()['pages'] ?? [], fn($p) => $p['is_active'] ?? true));
@@ -93,6 +93,9 @@ $calId        = getConfig('google_calendar_id',   '');
       </a>
       <a href="<?= $base ?>/admin/media.php" class="admin-nav-item">
         <?= icon('image','',16) ?> Imágenes
+      </a>
+      <a href="<?= $base ?>/admin/database.php" class="admin-nav-item">
+        <?= icon('settings','',16) ?> Base de datos
       </a>
       <span class="admin-nav-label">Portal</span>
       <a href="<?= $base ?>/index.php" class="admin-nav-item" target="_blank">

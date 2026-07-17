@@ -1,58 +1,66 @@
-# Checklist de publicación en cPanel
+# Checklist de publicación en Hostinger hPanel
 
-## Antes de subir
+## Antes de desplegar desde GitHub
 
-- Comprimir el contenido del proyecto, no la carpeta padre.
-- No es necesario subir `tmp/`.
-- No es necesario subir `knowledge/` si no quieres llevar notas internas al hosting.
-- Mantener estos archivos:
-  - `.htaccess`
-  - `data/.htaccess`
-  - `data/data.example.json`
-  - `includes/.htaccess`
-  - `assets/uploads/.htaccess`
+- Rotar en hPanel cualquier contraseña de base de datos que se haya compartido en chats o capturas.
+- Descargar un respaldo de `public_html/data/data.json`.
+- Confirmar que `.htaccess`, `database/schema.sql` y `config/database.example.php` estén en el despliegue.
+- No incluir ZIP, `.env`, `config/database.local.php` ni credenciales.
+- Confirmar que los respaldos de Hostinger incluyan la base de datos y `public_html/assets/uploads/`.
 
-## Migración inicial desde la versión anterior
+## Preparar MariaDB
 
-Antes de desplegar por primera vez esta versión desde GitHub:
+1. En hPanel abre **Bases de datos -> Administración** y conserva la base y el usuario ya creados.
+2. Cambia la contraseña de ese usuario por una nueva y privada.
+3. Abre phpMyAdmin, selecciona la base correcta e importa `database/schema.sql`.
+4. En el Administrador de archivos crea una carpeta `private` al lado de `public_html`.
+5. Copia el contenido de `config/database.example.php` a `private/bienestar-database.php`.
+6. Completa host `localhost`, puerto `3306`, nombre, usuario y la contraseña nueva.
+7. Mantén inicialmente `storage => 'json'`.
 
-1. Descarga desde el Administrador de archivos de Hostinger una copia de `data/data.json`.
-2. Ejecuta el despliegue desde GitHub.
-3. Comprueba que `data/data.json` siga presente en Hostinger.
-4. Si el despliegue lo eliminó, vuelve a subir la copia a `data/data.json` antes de abrir el panel.
+Si no recuerdas la contraseña del panel, agrega temporalmente una línea como esta, usando un token aleatorio propio de 32 caracteres o más:
 
-Este respaldo único conserva comentarios, contraseñas, estadísticas y cambios hechos desde el administrador. En los siguientes despliegues Git ignorará ese archivo.
+```php
+'admin_recovery_token' => 'TOKEN_ALEATORIO_DE_UN_SOLO_USO',
+```
 
-Las actualizaciones versionadas de contenido ubicadas en `data/migrations/` se aplicarán automáticamente una sola vez al abrir el portal.
+Después abre `/admin/recover.php`, define la nueva contraseña y elimina inmediatamente esa línea o déjala vacía. El mismo token no podrá utilizarse dos veces.
 
-## Permisos recomendados
+## Importar sin perder datos
 
-- Directorios: `755`
-- Archivos: `644`
-- `data/`: `755` o, si el hosting lo requiere, `775`
-- `assets/uploads/`: `755` o, si el hosting lo requiere, `775`
+1. Ejecuta el despliegue desde GitHub.
+2. Comprueba que `public_html/data/data.json` siga presente; si falta, restaura el respaldo antes de abrir el panel.
+3. Recupera primero el acceso desde `/admin/recover.php` si fuera necesario.
+4. Entra en `/admin/database.php`.
+5. Verifica que la conexión y el esquema aparezcan como listos.
+6. Autoriza **Importar JSON a MariaDB y verificar** con la contraseña actual del administrador.
+7. Confirma que los conteos de ambos lados coincidan.
+8. Edita el archivo privado y cambia solamente `storage => 'mysql'`.
 
-Evita `777` salvo que el hosting lo exija temporalmente. Si toca usarlo, vuelve a bajarlo después de probar.
+## Prueba posterior
 
-## Prueba rápida después de subir
+1. Abrir `/index.php` y recorrer las secciones.
+2. Entrar a `/admin/login.php` con la contraseña vigente.
+3. Editar una tarjeta y comprobar el cambio público.
+4. Publicar un comentario de prueba y moderarlo.
+5. Navegar varias páginas y revisar la analítica del Dashboard.
+6. Subir una imagen pequeña desde `Admin -> Imágenes`.
 
-1. Abrir `/index.php`.
-2. Entrar a `/admin/login.php`.
-3. Cambiar contraseña del admin.
-4. Subir una imagen pequeña desde `Admin -> Imágenes`.
-5. Publicar un comentario de prueba y eliminarlo desde `Admin -> Comentarios`.
-6. Navegar dos o tres secciones y revisar `Dashboard -> Visitas del portal`.
+## Permisos
 
-La contraseña inicial se entrega por separado con el paquete. Cambiala en el primer ingreso y no la dejes en correos, capturas o archivos públicos.
+- Directorios: `755`.
+- Archivos: `644`.
+- `assets/uploads/`: `755` o `775` si PHP no puede escribir.
+- `data/`: requiere escritura solo mientras se use JSON o se conserve su funcionamiento de respaldo.
 
-## Si algo no guarda
+Evita permisos `777`.
 
-Revisa permisos de:
+## Recuperación rápida
 
-- `data/data.json`
-- `data/`
-- `assets/uploads/`
+Si MariaDB presenta un problema antes de haber recibido datos nuevos:
 
-## Si aparece error 403
+1. Cambia `storage => 'json'` en el archivo privado.
+2. Confirma que `data/data.json` sea la copia correcta.
+3. Diagnostica la conexión desde `Admin -> Base de datos`.
 
-Verifica que no hayas subido el portal dentro de una carpeta con reglas `.htaccess` heredadas. También confirma que cPanel permita `Options -Indexes` y `Require all denied`.
+No vuelvas a JSON después de recibir comentarios o cambios nuevos en MariaDB sin exportarlos primero, porque el JSON ya estaría desactualizado.

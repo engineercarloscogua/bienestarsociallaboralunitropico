@@ -226,6 +226,7 @@ usort($imageFiles, fn($a, $b) => strcasecmp(basename($a), basename($b)));
       <a href="<?= $base ?>/admin/cards.php" class="admin-nav-item"><?= icon('layers','',16) ?> Tarjetas / Servicios</a>
       <a href="<?= $base ?>/admin/pages.php" class="admin-nav-item active"><?= icon('layers','',16) ?> Subpáginas</a>
       <a href="<?= $base ?>/admin/media.php" class="admin-nav-item"><?= icon('image','',16) ?> Imágenes</a>
+      <a href="<?= $base ?>/admin/database.php" class="admin-nav-item"><?= icon('settings','',16) ?> Base de datos</a>
       <span class="admin-nav-label">Portal</span>
       <a href="<?= $base ?>/index.php" class="admin-nav-item" target="_blank"><?= icon('external-link','',16) ?> Ver Sitio</a>
     </nav>
@@ -687,8 +688,9 @@ function addProgramBlock(block = {}) {
         <textarea name="program_blocks[${index}][body]" class="form-textarea" placeholder="Escribe el contenido de esta seccion...">${cmsEscape(block.body || '')}</textarea>
       </div>
       <div class="form-group">
-        <label class="form-label">URL multimedia o documento</label>
-        <input name="program_blocks[${index}][media_url]" type="url" class="form-input" value="${cmsEscape(block.media_url || '')}" placeholder="https://...">
+        <label class="form-label">URL de video, multimedia o documento</label>
+        <input name="program_blocks[${index}][media_url]" type="url" class="form-input" value="${cmsEscape(block.media_url || '')}" placeholder="https://youtube.com/... o https://drive.google.com/...">
+        <span class="form-hint">YouTube y videos compartidos desde Google Drive se incrustan automáticamente. En Drive, habilita acceso para quienes tengan el enlace.</span>
       </div>
       <div class="form-group">
         <label class="form-label">Texto del boton</label>

@@ -72,11 +72,32 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
       <h2><?= e($block['title'] ?? '') ?></h2>
       <p><?= e($block['body'] ?? '') ?></p>
-      <?php if (!empty($block['media_url'])): ?>
-      <a class="detail-card-link" href="<?= e($block['media_url']) ?>" target="_blank" rel="noopener noreferrer">
-        <?= icon('external-link', '', 15) ?>
-        <?= e($block['media_label'] ?? 'Abrir recurso') ?>
-      </a>
+      <?php if (!empty($block['media_url'])):
+        $mediaUrl = sanitizeContentUrl((string)$block['media_url'], false);
+        $videoEmbed = videoEmbedData($mediaUrl);
+        $mediaLabel = trim((string)($block['media_label'] ?? ''));
+      ?>
+        <?php if ($videoEmbed): ?>
+        <div class="detail-card-video" data-video-provider="<?= e($videoEmbed['provider']) ?>">
+          <iframe
+            src="<?= e($videoEmbed['embed_url']) ?>"
+            title="<?= e(($block['title'] ?? 'Video') . ' — ' . $videoEmbed['provider_label']) ?>"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <a class="detail-card-link" href="<?= e($videoEmbed['external_url']) ?>" target="_blank" rel="noopener noreferrer">
+          <?= icon('external-link', '', 15) ?>
+          <?= e($mediaLabel !== '' ? $mediaLabel : 'Abrir video en ' . $videoEmbed['provider_label']) ?>
+        </a>
+        <?php elseif ($mediaUrl !== ''): ?>
+        <a class="detail-card-link" href="<?= e($mediaUrl) ?>" target="_blank" rel="noopener noreferrer">
+          <?= icon('external-link', '', 15) ?>
+          <?= e($mediaLabel !== '' ? $mediaLabel : 'Abrir recurso') ?>
+        </a>
+        <?php endif; ?>
       <?php endif; ?>
     </article>
     <?php endforeach; ?>

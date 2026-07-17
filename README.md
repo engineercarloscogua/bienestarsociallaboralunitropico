@@ -1,76 +1,93 @@
 # Portal Bienestar Social Laboral - Unitrópico
 
-Portal público + panel admin autogestionable en PHP, sin base de datos por ahora.
+Portal público y panel administrativo autogestionable en PHP 8. El contenido puede operar temporalmente desde JSON y, para producción, desde MariaDB/MySQL mediante PDO.
 
-## Requisitos en cPanel
+## Funcionalidades
+
+- Páginas, tarjetas y subpáginas dinámicas.
+- Biblioteca de imágenes y documentos.
+- Comentarios públicos con respuestas y moderación.
+- Analítica interna mensual.
+- Configuración y cambio de contraseña desde el panel.
+- Integraciones con Google Calendar, Google Forms y recursos externos.
+- Reproductores adaptables para videos de YouTube y archivos compartidos desde Google Drive.
+- Migraciones de contenido versionadas y almacenamiento transaccional.
+
+## Requisitos en Hostinger hPanel
 
 - PHP 8.0 o superior.
-- Apache con `.htaccess` habilitado.
-- Permiso de escritura para `data/` y `assets/uploads/`.
-- Extensiones PHP estándar: `json`, `session`, `fileinfo`.
-- El archivo `data/security.json` se usa para los límites de seguridad y debe permanecer dentro de `data/`.
-- `data/data.json` y `data/security.json` son archivos persistentes de ejecución y no se versionan en Git.
-- Si `data/data.json` no existe en una instalación nueva, el portal lo crea desde `data/data.example.json`.
+- Extensiones `pdo_mysql`, `json`, `session` y `fileinfo`.
+- Base MariaDB/MySQL con InnoDB, `utf8mb4` y `utf8mb4_unicode_ci`.
+- Permiso de escritura en `assets/uploads/`.
+- Durante la transición JSON, permiso de escritura también en `data/`.
 
-## Subida a cPanel
+## Arquitectura de datos
 
-1. Entra a cPanel -> File Manager.
-2. Sube el contenido completo del proyecto a:
-   - `public_html/` si será el sitio principal.
-   - `public_html/bienestar/` si será una sección.
-3. Verifica permisos:
-   - Carpetas: `755`.
-   - Archivos: `644`.
-   - `data/`: debe permitir escritura.
-   - `assets/uploads/`: debe permitir escritura.
-4. Abre el sitio:
-   - Portal: `https://tudominio.com/`
-   - Admin: `https://tudominio.com/admin/login.php`
+La aplicación conserva un único contrato de datos y permite dos backends:
 
-Si lo subes a una subcarpeta:
+- `json`: modo de transición y respaldo; usa `data/data.json`.
+- `mysql`: modo de producción; usa PDO y las tablas de `database/schema.sql`.
 
-- Portal: `https://tudominio.com/bienestar/`
-- Admin: `https://tudominio.com/bienestar/admin/login.php`
+MariaDB almacena configuración, páginas, tarjetas, programas, usuario administrador, comentarios, analítica, seguridad y registro de migraciones. Las imágenes y PDF permanecen en `assets/uploads/`; la base guarda sus rutas.
 
-## Credenciales
+En el editor de subpáginas, un bloque multimedia incrusta automáticamente enlaces válidos de YouTube o Google Drive. Los archivos de Drive deben permitir acceso a las personas que tengan el enlace. Otros dominios se muestran como botones externos y no se incrustan.
 
-El usuario inicial es `admin`. La contraseña inicial aleatoria se entrega junto con el paquete de despliegue y debe cambiarse después del primer ingreso desde:
+Todas las escrituras a MariaDB usan transacciones InnoDB y un bloqueo lógico para evitar que dos solicitudes simultáneas sobrescriban cambios. Si MariaDB falla, el portal muestra el error y no cambia silenciosamente a JSON, porque eso dividiría los datos.
 
-`Dashboard -> Cambiar Contraseña`
+## Configuración privada
 
-No publiques la contraseña en la documentación del servidor ni la reutilices en otros servicios.
+Las credenciales no se guardan en Git. La aplicación busca la configuración en este orden:
 
-## Qué queda autogestionable
+1. Ruta indicada por la variable `APP_DB_CONFIG`.
+2. `private/bienestar-database.php`, como carpeta hermana de la raíz del proyecto.
+3. `config/database.local.php`, solo para desarrollo y excluido por `.gitignore`.
 
-- Títulos principales del sitio.
-- Tarjetas y servicios.
-- Subpáginas dinámicas.
-- Imágenes desde biblioteca.
-- Comentarios y respuestas de visitantes.
-- Estadísticas internas por mes.
-- Google Calendar embebido.
+Usa [config/database.example.php](config/database.example.php) como plantilla. En Hostinger, si el proyecto está directamente en `public_html`, crea `private/` al lado de `public_html` y guarda allí `bienestar-database.php`.
 
-## Seguridad incluida
+No reutilices la contraseña que fue compartida en una conversación o captura: rótala en hPanel y escribe la nueva únicamente en el archivo privado.
 
-El proyecto incluye `.htaccess` para:
+### Recuperación administrativa de un solo uso
 
-- Evitar listado de directorios.
-- Bloquear acceso web directo a `data/`.
-- Bloquear acceso web directo a `includes/`.
-- Bloquear acceso web directo a `knowledge/` y `tmp/`.
-- Impedir ejecución de PHP dentro de `assets/uploads/`.
-- Añadir cabeceras básicas de seguridad.
-- Proteger el panel con sesión endurecida, CSRF, expiración y límite de intentos.
-- Aplicar límites de frecuencia a comentarios y analítica pública.
+Si se perdió la contraseña online, agrega temporalmente al archivo privado un `admin_recovery_token` aleatorio de al menos 32 caracteres. Abre `/admin/recover.php`, introduce ese token y define la contraseña nueva. El portal registra el hash del token para impedir que vuelva a utilizarse, incluso después de migrar a MariaDB. Al terminar, elimina el token del archivo privado.
 
-## Importante
+## Migración de JSON a MariaDB
 
-No requiere MySQL todavía. Los datos se guardan en `data/data.json`, por eso esa carpeta debe poder escribirse desde PHP.
+1. Descarga un respaldo del `data/data.json` de producción.
+2. Despliega el código manteniendo `storage => 'json'` en el archivo privado.
+3. En phpMyAdmin selecciona la base e importa `database/schema.sql`.
+4. Si no recuerdas la contraseña online, usa una sola vez `/admin/recover.php` y elimina el token privado.
+5. Entra en `Admin -> Base de datos`.
+6. Verifica conexión y esquema, escribe la contraseña vigente del administrador y ejecuta la importación.
+7. Confirma que los conteos de JSON y MariaDB coincidan.
+8. Cambia solo `storage => 'mysql'` en el archivo privado.
+9. Prueba el portal, un comentario, el panel, una edición y la analítica.
+10. Conserva el JSON como respaldo durante unos días; no lo elimines inmediatamente.
 
-`data/data.json` contiene comentarios, credenciales, estadísticas y cambios realizados desde el panel. Está excluido de Git para que los despliegues desde GitHub no lo sobrescriban. `data/data.example.json` es solamente la plantilla para instalaciones nuevas.
+La importación reemplaza únicamente las tablas funcionales del portal dentro de una transacción. Si una consulta falla, MariaDB revierte la operación completa.
 
-Los cambios de contenido que deban llegar a instalaciones existentes se guardan en `data/migrations/`. El portal aplica cada migración una sola vez y conserva el resto de los datos de producción.
+## Desarrollo local
 
-Antes del primer despliegue que adopte esta estructura, descarga una copia del `data/data.json` existente en producción. Después del despliegue, confirma que el archivo siga en `data/`; si fue eliminado, restaura la copia antes de usar el panel.
+Copia la plantilla como `config/database.local.php`, crea una base local e importa el esquema. Para verificar el ciclo completo:
 
-Cuando en el futuro migren a base de datos, la interfaz del admin puede conservarse y cambiarse solo la capa de almacenamiento.
+```bash
+php tests/database-roundtrip.php
+```
+
+El test importa el JSON local, lo reconstruye desde MariaDB y valida las actualizaciones transaccionales. Debe ejecutarse solo contra una base de pruebas.
+
+## Datos y despliegues desde GitHub
+
+`data/data.json`, `data/security.json`, los archivos de bloqueo, los ZIP y la configuración local están excluidos de Git. Por eso un despliegue no debe sobrescribir los comentarios ni las credenciales de producción.
+
+Los nuevos archivos cargados desde el panel en `assets/uploads/` también quedan ignorados por Git. Los recursos institucionales que ya estaban versionados continúan normalmente en el repositorio. Aun así, la base de datos y `assets/uploads/` deben incluirse en los respaldos de Hostinger, porque Git no sustituye una copia de seguridad de los archivos generados en producción.
+
+Los cambios de contenido versionados viven en `data/migrations/` y se aplican una sola vez tanto en JSON como en MariaDB.
+
+## Rutas
+
+- Portal: `/index.php`
+- Administración: `/admin/login.php`
+- Recuperación temporal: `/admin/recover.php`
+- Estado y migración de base: `/admin/database.php`
+
+La configuración privada, `data/`, `database/`, `includes/`, `tests/` y otras carpetas internas están bloqueadas desde `.htaccess`.

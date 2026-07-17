@@ -7,7 +7,8 @@
 - Gestión de tarjetas en `admin/cards.php`.
 - Gestión de páginas en `admin/pages.php`.
 - Gestión de imágenes en `admin/media.php`.
-- Persistencia en `data/data.json`.
+- Estado y migración en `admin/database.php`.
+- Persistencia MariaDB mediante PDO, con JSON disponible para transición.
 
 ## Capacidades actuales
 
@@ -16,6 +17,7 @@
 - Crear/editar/eliminar tarjetas.
 - Crear/editar registros de subpáginas.
 - Subir y eliminar imágenes.
+- Incrustar videos de YouTube o Google Drive pegando su enlace en un bloque multimedia.
 
 ## Limitación principal
 
@@ -32,7 +34,7 @@ Así el admin podría crear subpáginas reales sin tocar archivos PHP.
 
 ## Avance implementado
 
-Ya existe `pages/programa.php?slug=...` para renderizar subpáginas de programas desde `data/data.json`, en la sección `program_pages`.
+Ya existe `pages/programa.php?slug=...` para renderizar subpáginas de programas desde el almacenamiento activo, en la sección `program_pages`.
 
 Subpáginas actuales:
 

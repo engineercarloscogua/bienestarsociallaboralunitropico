@@ -1,5 +1,5 @@
 <?php
-// Autenticación del panel administrador sin base de datos.
+// Autenticación del panel administrador sobre el almacenamiento activo.
 require_once __DIR__ . '/functions.php';
 
 function isSecureRequest(): bool {

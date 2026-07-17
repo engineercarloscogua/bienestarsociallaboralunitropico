@@ -31,7 +31,7 @@ AddDefaultCharset UTF-8
   RewriteRule ^\.well-known/ - [L]
 
   # Evitar exposición de carpetas internas si el hosting ignora sus .htaccess.
-  RewriteRule ^(data|includes|knowledge|tmp)(/|$) - [F,L]
+  RewriteRule ^(config|data|database|includes|knowledge|private|tests|tmp)(/|$) - [F,L]
 </IfModule>
 
 <IfModule mod_headers.c>

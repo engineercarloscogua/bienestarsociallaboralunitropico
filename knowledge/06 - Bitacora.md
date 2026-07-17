@@ -47,3 +47,14 @@ Relacionado: [[01 - Estado actual]], [[03 - Identidad visual]], [[05 - Pendiente
 - Se añadieron transiciones animadas entre secciones al navegar desde el menú lateral.
 - Se integró la mascota Talibrí en todas las páginas públicas, con imagen recortada, mensajes aleatorios cada 2 minutos, animaciones, entrada visible y orientación hacia el contenido.
 - Se agregaron versiones automáticas a `assets/css/main.css` y `assets/js/main.js` mediante `filemtime()` para evitar caché vieja en navegador.
+
+## 2026-07-15
+
+- Se añadió almacenamiento dual JSON/MariaDB sin cambiar el contrato de la interfaz existente.
+- Se creó `database/schema.sql` con tablas InnoDB y codificación `utf8mb4`.
+- Se implementó configuración PDO privada, excluida de Git y preferiblemente fuera de `public_html`.
+- Se agregó `admin/database.php` para revisar conexión, importar el JSON y verificar conteos y cuenta administrativa.
+- Se optimizaron analítica, comentarios, seguridad y contraseña administrativa con operaciones directas en MariaDB.
+- Se verificó la ida y vuelta exacta de los datos y 16 escrituras concurrentes sin pérdida.
+- Se habilitó la incrustación automática y adaptable de videos de YouTube y Google Drive desde los bloques multimedia del panel.
+- Se protegió `database/` desde Apache y se añadió recuperación administrativa mediante token privado de un solo uso.
