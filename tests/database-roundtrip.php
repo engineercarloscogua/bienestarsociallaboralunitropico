@@ -57,7 +57,12 @@ databaseUpdateSecurityState(function (array &$state): void {
 });
 
 $testComment = addComment('Prueba MariaDB', 'Comentario transaccional de prueba.', 5, '✅');
-testAssert(databaseCanReplyToComment($testComment['id']), 'Falló la inserción directa de comentarios.');
+testAssert(normalizeCommentStatus($testComment) === 'pending', 'El comentario nuevo no quedó pendiente.');
+testAssert(!databaseCanReplyToComment($testComment['id']), 'Un comentario pendiente quedó visible para respuestas.');
+testAssert(moderateComment($testComment['id'], 'published'), 'Falló la publicación del comentario.');
+testAssert(databaseCanReplyToComment($testComment['id']), 'El comentario publicado no quedó disponible para respuestas.');
+testAssert(moderateComment($testComment['id'], 'rejected'), 'Falló el rechazo del comentario.');
+testAssert(!databaseCanReplyToComment($testComment['id']), 'Un comentario rechazado quedó visible para respuestas.');
 deleteComment($testComment['id']);
 testAssert(!databaseCanReplyToComment($testComment['id']), 'Falló la eliminación directa de comentarios.');
 

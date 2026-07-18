@@ -333,6 +333,40 @@ function databaseDeleteComment(string $commentId): void {
     $statement->execute([$commentId, $commentId]);
 }
 
+function databaseUpdateCommentStatus(string $commentId, string $status): bool {
+    $pdo = databaseConnection();
+    $pdo->beginTransaction();
+    try {
+        databaseAcquireLock($pdo, 'content');
+        $statement = $pdo->prepare('SELECT data_json FROM comments WHERE id = ? FOR UPDATE');
+        $statement->execute([$commentId]);
+        $encoded = $statement->fetchColumn();
+        if ($encoded === false) {
+            $pdo->commit();
+            return false;
+        }
+
+        $comment = databaseDecodeValue((string)$encoded, []);
+        if (!is_array($comment)) $comment = [];
+        $comment['status'] = $status;
+        $comment['is_active'] = $status === 'published';
+
+        $statement = $pdo->prepare(
+            'UPDATE comments SET is_active = ?, data_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+        );
+        $statement->execute([
+            $status === 'published' ? 1 : 0,
+            databaseEncodeValue($comment),
+            $commentId,
+        ]);
+        $pdo->commit();
+        return true;
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+}
+
 function databaseCanReplyToComment(string $commentId): bool {
     $statement = databaseConnection()->prepare(
         "SELECT COUNT(*) FROM comments WHERE id = ? AND is_active = 1 AND (parent_id IS NULL OR parent_id = '')"

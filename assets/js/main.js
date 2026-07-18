@@ -284,20 +284,16 @@ function initCommentForm() {
 
     try {
       const data = await submitComment(form);
-      const card = buildCommentCard(data.comment, form.action);
-      const empty = wall.querySelector('.comment-empty');
-      if (empty) empty.remove();
-      wall.prepend(card);
       form.reset();
       const defaultRating = form.querySelector('input[name="rating"][value="5"]');
       const defaultEmoji = form.querySelector('input[name="emoji"][value="💚"]');
       if (defaultRating) defaultRating.checked = true;
       if (defaultEmoji) defaultEmoji.checked = true;
       status.classList.add('success');
-      status.textContent = data.message || 'Comentario publicado.';
+      status.textContent = data.message || 'Comentario recibido y enviado a revisión.';
     } catch (error) {
       status.classList.add('error');
-      status.textContent = error.message || 'No se pudo publicar el comentario.';
+      status.textContent = error.message || 'No se pudo enviar el comentario.';
     }
   });
 
@@ -325,20 +321,15 @@ function initCommentForm() {
     const replyStatus = replyForm.querySelector('[data-reply-status]');
     if (replyStatus) {
       replyStatus.className = 'comment-form-status';
-      replyStatus.textContent = 'Publicando respuesta...';
+      replyStatus.textContent = 'Enviando respuesta a revisión...';
     }
 
     try {
       const data = await submitComment(replyForm);
-      const card = replyForm.closest('.comment-card');
-      const replies = card?.querySelector('.comment-replies');
-      if (replies) replies.append(buildReplyCard(data.comment));
       replyForm.reset();
-      replyForm.hidden = true;
-      card?.querySelector('[data-reply-toggle]')?.classList.remove('is-open');
       if (replyStatus) {
         replyStatus.classList.add('success');
-        replyStatus.textContent = data.message || 'Respuesta publicada.';
+        replyStatus.textContent = data.message || 'Respuesta recibida y enviada a revisión.';
       }
     } catch (error) {
       if (replyStatus) {
@@ -358,95 +349,8 @@ async function submitComment(form) {
   const data = await response.json();
 
   if (!response.ok || !data.ok) {
-    throw new Error(data.message || 'No se pudo publicar el comentario.');
+    throw new Error(data.message || 'No se pudo enviar el comentario.');
   }
 
   return data;
-}
-
-function buildCommentCard(comment, actionUrl) {
-  const card = document.createElement('article');
-  card.className = 'comment-card';
-  card.dataset.commentId = comment.id || '';
-  const rating = '★'.repeat(Number(comment.rating || 5));
-  const dateText = formatCommentDate(comment.created_at);
-  card.innerHTML = `
-    <div class="comment-card-top">
-      <span class="comment-emoji"></span>
-      <div class="comment-main">
-        <div class="comment-meta">
-          <h3></h3>
-          <span>@portalTH</span>
-          <span aria-hidden="true">·</span>
-          <time datetime="${escapeHtml(comment.created_at || '')}">${dateText}</time>
-        </div>
-        <p></p>
-        <div class="comment-score">${rating}</div>
-      </div>
-    </div>
-    <div class="comment-replies"></div>
-    <div class="comment-actions">
-      <button type="button" class="comment-reply-toggle" data-reply-toggle>Responder</button>
-    </div>
-    <form class="comment-reply-form" data-reply-form method="post" action="${escapeHtml(actionUrl)}" hidden>
-      <input type="hidden" name="parent_id" value="${escapeHtml(comment.id || '')}">
-      <input type="hidden" name="rating" value="${Number(comment.rating || 5)}">
-      <input type="hidden" name="emoji" value="💬">
-      <div class="form-field">
-        <label>Tu nombre</label>
-        <input name="name" type="text" maxlength="60" placeholder="Nombre o área">
-      </div>
-      <div class="form-field">
-        <label>Respuesta</label>
-        <textarea name="message" rows="3" maxlength="600" required placeholder="Responde con respeto y buena energía"></textarea>
-      </div>
-      <button type="submit" class="btn-primary btn-reply-submit">Enviar respuesta</button>
-      <p class="comment-form-status" data-reply-status aria-live="polite"></p>
-    </form>
-  `;
-  card.querySelector('.comment-emoji').textContent = comment.emoji || '💚';
-  card.querySelector('h3').textContent = comment.name || 'Visitante';
-  card.querySelector('p').textContent = comment.message || '';
-  return card;
-}
-
-function buildReplyCard(reply) {
-  const card = document.createElement('article');
-  card.className = 'comment-reply';
-  card.innerHTML = `
-    <span class="comment-reply-avatar"></span>
-    <div class="comment-reply-body">
-    <div class="comment-reply-head">
-      <strong></strong>
-      <span>@respuesta</span>
-      <span aria-hidden="true">·</span>
-      <time datetime="${escapeHtml(reply.created_at || '')}">${formatCommentDate(reply.created_at)}</time>
-    </div>
-    <p></p>
-    </div>
-  `;
-  card.querySelector('.comment-reply-avatar').textContent = reply.emoji || '💬';
-  card.querySelector('strong').textContent = reply.name || 'Visitante';
-  card.querySelector('p').textContent = reply.message || '';
-  return card;
-}
-
-function formatCommentDate(value) {
-  const created = new Date(value || Date.now());
-  return created.toLocaleString('es-CO', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
 }

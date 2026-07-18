@@ -50,8 +50,8 @@ if ($parentId !== '' && !canReplyToComment($parentId)) {
 
 $comment = addComment($name, $message, $rating, $emoji, $parentId);
 $responseMessage = $parentId !== ''
-    ? 'Respuesta publicada. Gracias por seguir la conversación.'
-    : 'Comentario publicado. Gracias por compartir tu experiencia.';
+    ? 'Respuesta recibida. Quedará visible cuando sea aprobada por el equipo administrador.'
+    : 'Comentario recibido. Quedará visible cuando sea aprobado por el equipo administrador.';
 
 echo json_encode([
     'ok' => true,

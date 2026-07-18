@@ -862,6 +862,15 @@ body.page-leaving .topbar {
 .comment-form-status.error {
   color: #b42318;
 }
+.comment-form-note {
+  margin: -4px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 107, 91, 0.07);
+  color: var(--text-secondary);
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+}
 .comment-wall {
   display: grid;
   grid-template-columns: 1fr;

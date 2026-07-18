@@ -723,10 +723,31 @@ function recoverAdminPassword(string $newPassword, string $recoveryToken): int {
 /**
  * Obtener comentarios visibles del portal.
  */
+function commentModerationStatuses(): array {
+    return ['pending', 'published', 'rejected'];
+}
+
+function normalizeCommentStatus(array $comment): string {
+    $status = strtolower(trim((string)($comment['status'] ?? '')));
+    if (in_array($status, commentModerationStatuses(), true)) return $status;
+    return !empty($comment['is_active']) ? 'published' : 'rejected';
+}
+
+function commentStatusLabel(string $status): string {
+    return match ($status) {
+        'published' => 'Publicado',
+        'rejected' => 'Rechazado',
+        default => 'Pendiente',
+    };
+}
+
 function getComments(): array {
     $data = readData();
     $comments = $data['comments'] ?? [];
-    $comments = array_values(array_filter($comments, fn($comment) => !empty($comment['is_active'])));
+    $comments = array_values(array_filter(
+        $comments,
+        fn($comment) => is_array($comment) && normalizeCommentStatus($comment) === 'published'
+    ));
     $threads = [];
     $repliesByParent = [];
 
@@ -760,6 +781,12 @@ function getComments(): array {
 function getAllComments(): array {
     $data = readData();
     $comments = $data['comments'] ?? [];
+    foreach ($comments as &$comment) {
+        if (!is_array($comment)) $comment = [];
+        $comment['status'] = normalizeCommentStatus($comment);
+        $comment['is_active'] = $comment['status'] === 'published';
+    }
+    unset($comment);
     usort($comments, fn($a, $b) => strcmp($b['created_at'] ?? '', $a['created_at'] ?? ''));
     return array_values($comments);
 }
@@ -788,7 +815,8 @@ function addComment(string $name, string $message, int $rating = 5, string $emoj
         'emoji' => $cut($emoji, 8),
         'parent_id' => $parentId,
         'created_at' => date('c'),
-        'is_active' => true,
+        'status' => 'pending',
+        'is_active' => false,
     ];
 
     if (storageDriver() === 'mysql') {
@@ -803,6 +831,35 @@ function addComment(string $name, string $message, int $rating = 5, string $emoj
         array_unshift($data['comments'], $comment);
     });
     return $comment;
+}
+
+/**
+ * Cambiar el estado de moderación de un comentario o respuesta.
+ */
+function moderateComment(string $commentId, string $status): bool {
+    $commentId = preg_replace('/[^a-zA-Z0-9_.-]/', '', trim($commentId));
+    $status = strtolower(trim($status));
+    if ($commentId === '' || !in_array($status, commentModerationStatuses(), true)) return false;
+
+    if (storageDriver() === 'mysql') {
+        ensureDataReady();
+        $updated = databaseUpdateCommentStatus($commentId, $status);
+        unset($GLOBALS['portal_data_cache']);
+        return $updated;
+    }
+
+    return (bool)updateData(function (array &$data) use ($commentId, $status): bool {
+        if (empty($data['comments']) || !is_array($data['comments'])) return false;
+        foreach ($data['comments'] as &$comment) {
+            if (($comment['id'] ?? '') !== $commentId) continue;
+            $comment['status'] = $status;
+            $comment['is_active'] = $status === 'published';
+            unset($comment);
+            return true;
+        }
+        unset($comment);
+        return false;
+    });
 }
 
 /**
@@ -833,7 +890,11 @@ function canReplyToComment(string $commentId): bool {
     }
     $data = readData();
     foreach (($data['comments'] ?? []) as $comment) {
-        if (($comment['id'] ?? '') === $commentId && !empty($comment['is_active']) && empty($comment['parent_id'])) {
+        if (
+            ($comment['id'] ?? '') === $commentId
+            && normalizeCommentStatus((array)$comment) === 'published'
+            && empty($comment['parent_id'])
+        ) {
             return true;
         }
     }

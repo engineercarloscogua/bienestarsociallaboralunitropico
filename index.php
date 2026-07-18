@@ -240,7 +240,7 @@ require_once __DIR__ . '/includes/header.php';
         <div>
           <span class="benefit-kicker">Tu opinión importa</span>
           <h3>Cuéntanos cómo te fue</h3>
-          <p>Comparte tu experiencia usando el portal. Puedes dejar tu nombre, usar emojis y calificar qué tan útil te pareció.</p>
+          <p>Comparte tu experiencia usando el portal. Para cuidar este espacio, cada comentario será revisado antes de publicarse.</p>
         </div>
 
         <div class="comment-rating" aria-label="Calificación de experiencia">
@@ -271,8 +271,9 @@ require_once __DIR__ . '/includes/header.php';
         </div>
         <button type="submit" class="btn-primary">
           <?= icon('sparkles', '', 15) ?>
-          Publicar comentario
+          Enviar comentario para revisión
         </button>
+        <p class="comment-form-note">Los comentarios ofensivos, discriminatorios o que suplanten a otra persona no serán publicados.</p>
         <p class="comment-form-status" id="comment-form-status" aria-live="polite"></p>
       </form>
 
@@ -334,7 +335,7 @@ require_once __DIR__ . '/includes/header.php';
               </div>
               <button type="submit" class="btn-primary btn-reply-submit">
                 <?= icon('send', '', 14) ?>
-                Enviar respuesta
+                Enviar respuesta para revisión
               </button>
               <p class="comment-form-status" data-reply-status aria-live="polite"></p>
             </form>
