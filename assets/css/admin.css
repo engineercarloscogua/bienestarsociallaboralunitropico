@@ -5,7 +5,9 @@
   --accent: #007c72;
   --bronze: #b8a261;
   --bronze-dark: #8f7e36;
-  --bg-base: #f7f8f4;
+  --bg-base: #e7edf4;
+  --bg-base-deep: #d9e3ec;
+  --bg-admin-bar: rgba(238, 243, 248, 0.94);
   --bg-surface: #ffffff;
   --bg-card: #ffffff;
   --bg-soft: #eef5f1;
@@ -28,7 +30,10 @@
 html { scroll-behavior: smooth; }
 body {
   font-family: 'Source Sans 3', Arial, sans-serif;
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at 92% 4%, rgba(0, 107, 91, 0.12), transparent 28%),
+    linear-gradient(135deg, var(--bg-base) 0%, var(--bg-base-deep) 100%);
+  background-attachment: fixed;
   color: var(--text-p);
   min-height: 100vh;
   overflow-x: hidden;
@@ -48,8 +53,8 @@ button, input, textarea, select { font-family: inherit; }
   inset: 0 auto 0 0;
   width: var(--sidebar-w);
   height: 100vh;
-  background: #fff;
-  border-right: 1px solid var(--border);
+  background: #f9fbfd;
+  border-right: 1px solid #cbd7e2;
   display: flex;
   flex-direction: column;
   z-index: 100;
@@ -139,9 +144,9 @@ button, input, textarea, select { font-family: inherit; }
   top: 0;
   z-index: 50;
   min-height: 60px;
-  background: rgba(255,255,255,0.92);
+  background: var(--bg-admin-bar);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #cbd7e2;
   padding: 0 24px;
   display: flex;
   align-items: center;
@@ -470,7 +475,17 @@ button, input, textarea, select { font-family: inherit; }
 .alert-success { background: #e8f5f1; color: var(--green); border: 1px solid #cce7df; }
 .alert-error { background: #fdecea; color: var(--red); border: 1px solid #f3c4bf; }
 
-.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-base); padding: 24px; }
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(184, 162, 97, 0.2), transparent 26%),
+    radial-gradient(circle at 18% 82%, rgba(0, 107, 91, 0.18), transparent 30%),
+    linear-gradient(135deg, var(--bg-base) 0%, var(--bg-base-deep) 100%);
+  padding: 24px;
+}
 .login-bg-glow { display: none; }
 .login-card { border-radius: var(--radius-lg); padding: 40px 36px; width: 100%; max-width: 390px; }
 .login-logo {
