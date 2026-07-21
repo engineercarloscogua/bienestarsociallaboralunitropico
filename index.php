@@ -12,6 +12,7 @@ $allCards    = getAllCards();
 $resourceCount = count(array_filter($allCards, fn($card) => $card['is_active'] ?? true));
 $sectionCount  = count(getPages());
 $base        = baseUrl();
+$turnstileSiteKey = turnstileSiteKey();
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -236,7 +237,13 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 
     <div class="experience-layout">
+      <?php $commentRequestToken = issuePublicRequestToken('comment'); ?>
       <form class="experience-form" id="comment-form" method="post" action="<?= $base ?>/api/comments.php">
+        <input type="hidden" name="request_token" value="<?= e($commentRequestToken) ?>">
+        <div class="comment-honeypot" aria-hidden="true">
+          <label for="comment-website">No completar este campo</label>
+          <input id="comment-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
         <div>
           <span class="benefit-kicker">Tu opinión importa</span>
           <h3>Cuéntanos cómo te fue</h3>
@@ -269,6 +276,9 @@ require_once __DIR__ . '/includes/header.php';
           <label for="comment-message">Comentario</label>
           <textarea id="comment-message" name="message" rows="4" maxlength="600" required placeholder="¿Qué te gustó del portal? ¿Qué mejorarías?"></textarea>
         </div>
+        <?php if ($turnstileSiteKey !== ''): ?>
+        <div class="turnstile-slot" data-turnstile-sitekey="<?= e($turnstileSiteKey) ?>" data-turnstile-action="comment" aria-label="Verificación anti-bots"></div>
+        <?php endif; ?>
         <button type="submit" class="btn-primary">
           <?= icon('sparkles', '', 15) ?>
           Enviar comentario para revisión
@@ -325,6 +335,11 @@ require_once __DIR__ . '/includes/header.php';
               <input type="hidden" name="parent_id" value="<?= e($commentId) ?>">
               <input type="hidden" name="rating" value="<?= (int)($comment['rating'] ?? 5) ?>">
               <input type="hidden" name="emoji" value="💬">
+              <input type="hidden" name="request_token" value="<?= e(issuePublicRequestToken('comment')) ?>">
+              <div class="comment-honeypot" aria-hidden="true">
+                <label>No completar este campo</label>
+                <input name="website" type="text" tabindex="-1" autocomplete="off">
+              </div>
               <div class="form-field">
                 <label>Tu nombre</label>
                 <input name="name" type="text" maxlength="60" placeholder="Nombre o área">
@@ -333,6 +348,9 @@ require_once __DIR__ . '/includes/header.php';
                 <label>Respuesta</label>
                 <textarea name="message" rows="3" maxlength="600" required placeholder="Responde con respeto y buena energía"></textarea>
               </div>
+              <?php if ($turnstileSiteKey !== ''): ?>
+              <div class="turnstile-slot" data-turnstile-sitekey="<?= e($turnstileSiteKey) ?>" data-turnstile-action="comment" aria-label="Verificación anti-bots"></div>
+              <?php endif; ?>
               <button type="submit" class="btn-primary btn-reply-submit">
                 <?= icon('send', '', 14) ?>
                 Enviar respuesta para revisión

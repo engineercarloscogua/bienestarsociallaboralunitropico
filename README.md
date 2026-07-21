@@ -6,8 +6,8 @@ Portal público y panel administrativo autogestionable en PHP 8. El contenido pu
 
 - Páginas, tarjetas y subpáginas dinámicas.
 - Biblioteca de imágenes y documentos.
-- Comentarios públicos con respuestas y moderación.
-- Analítica interna mensual.
+- Comentarios públicos con respuestas, moderación y protección anti-bots.
+- Analítica interna mensual basada en permanencia e interacción, con deduplicación.
 - Configuración y cambio de contraseña desde el panel.
 - Integraciones con Google Calendar, Google Forms y recursos externos.
 - Reproductores adaptables para videos de YouTube y archivos compartidos desde Google Drive.
@@ -46,6 +46,17 @@ Usa [config/database.example.php](config/database.example.php) como plantilla. E
 
 No reutilices la contraseña que fue compartida en una conversación o captura: rótala en hPanel y escribe la nueva únicamente en el archivo privado.
 
+### Protección anti-bots con Turnstile
+
+Crea un widget gratuito de Cloudflare Turnstile para el dominio de producción y agrega al archivo privado:
+
+```php
+'turnstile_site_key' => 'CLAVE_PUBLICA_DEL_WIDGET',
+'turnstile_secret_key' => 'CLAVE_SECRETA_PRIVADA',
+```
+
+La clave secreta nunca debe entrar al repositorio. En `localhost`, `127.0.0.1` y dominios `.test`, el portal utiliza automáticamente las claves oficiales de prueba de Cloudflare cuando no hay claves configuradas. En producción deben estar presentes las dos claves; si falta alguna, el backend rechaza nuevos comentarios para no dejar el formulario desprotegido.
+
 ### Recuperación administrativa de un solo uso
 
 Si se perdió la contraseña online, agrega temporalmente al archivo privado un `admin_recovery_token` aleatorio de al menos 32 caracteres. Abre `/admin/recover.php`, introduce ese token y define la contraseña nueva. El portal registra el hash del token para impedir que vuelva a utilizarse, incluso después de migrar a MariaDB. Al terminar, elimina el token del archivo privado.
@@ -71,6 +82,8 @@ Copia la plantilla como `config/database.local.php`, crea una base local e impor
 
 ```bash
 php tests/database-roundtrip.php
+php tests/bot-protection.php
+php tests/analytics-engagement.php
 ```
 
 El test importa el JSON local, lo reconstruye desde MariaDB y valida las actualizaciones transaccionales. Debe ejecutarse solo contra una base de pruebas.

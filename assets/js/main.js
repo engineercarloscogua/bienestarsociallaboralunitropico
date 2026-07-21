@@ -6,41 +6,71 @@ document.addEventListener('DOMContentLoaded', () => {
   initPageTransitions();
   initSelfcareGames();
   initTalibriMascot();
+  initTurnstileWidgets();
   initCommentForm();
 });
 
 function initAnalytics() {
   const endpoint = `${window.PORTAL_BASE || ''}/api/analytics.php`;
-  const visitorKey = 'unitropicoThVisitorId';
-  let visitorId = localStorage.getItem(visitorKey);
+  const requestToken = window.PORTAL_ANALYTICS_TOKEN || '';
+  if (!requestToken || navigator.webdriver) return;
 
-  if (!visitorId) {
-    const randomPart = window.crypto?.randomUUID
-      ? window.crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    visitorId = `v_${randomPart}`;
-    localStorage.setItem(visitorKey, visitorId);
-  }
+  let interacted = false;
+  let sent = false;
+  let visibleMilliseconds = 0;
+  let visibleSince = document.visibilityState === 'visible' ? performance.now() : null;
 
-  const payload = new URLSearchParams({
-    visitor_id: visitorId,
-    path: `${window.location.pathname}${window.location.search}`,
-    title: document.title.replace(' — Unitrópico', ''),
+  const updateVisibleTime = () => {
+    if (visibleSince === null) return;
+    visibleMilliseconds += performance.now() - visibleSince;
+    visibleSince = null;
+  };
+
+  const markInteraction = () => {
+    interacted = true;
+  };
+
+  ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach((eventName) => {
+    window.addEventListener(eventName, markInteraction, { once: true, passive: true });
   });
 
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(endpoint, new Blob([payload.toString()], {
-      type: 'application/x-www-form-urlencoded;charset=UTF-8',
-    }));
-    return;
-  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      visibleSince = performance.now();
+    } else {
+      updateVisibleTime();
+    }
+  });
 
-  fetch(endpoint, {
-    method: 'POST',
-    body: payload,
-    keepalive: true,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-  }).catch(() => {});
+  const timer = window.setInterval(() => {
+    const currentVisible = visibleMilliseconds
+      + (visibleSince === null ? 0 : performance.now() - visibleSince);
+    if (sent || !interacted || currentVisible < 10000) return;
+
+    sent = true;
+    window.clearInterval(timer);
+    const payload = new URLSearchParams({
+      request_token: requestToken,
+      interaction: '1',
+      visible_seconds: String(Math.floor(currentVisible / 1000)),
+      path: `${window.location.pathname}${window.location.search}`,
+      title: document.title.replace(' — Unitrópico', ''),
+    });
+
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(endpoint, new Blob([payload.toString()], {
+        type: 'application/x-www-form-urlencoded;charset=UTF-8',
+      }));
+      return;
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      body: payload,
+      keepalive: true,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    }).catch(() => {});
+  }, 1000);
 }
 
 function initSidebar() {
@@ -271,6 +301,35 @@ function initTalibriMascot() {
   }, 120000);
 }
 
+function initTurnstileWidgets(root = document) {
+  const siteKey = window.PORTAL_TURNSTILE_SITE_KEY || '';
+  if (!siteKey || !window.turnstile) return;
+
+  root.querySelectorAll('.turnstile-slot').forEach((slot) => {
+    if (slot.dataset.turnstileWidgetId || slot.closest('[hidden]')) return;
+    const widgetId = window.turnstile.render(slot, {
+      sitekey: slot.dataset.turnstileSitekey || siteKey,
+      action: slot.dataset.turnstileAction || 'comment',
+      theme: 'light',
+      language: 'es',
+    });
+    slot.dataset.turnstileWidgetId = String(widgetId);
+  });
+}
+
+function resetTurnstileWidget(form) {
+  const slot = form.querySelector('.turnstile-slot[data-turnstile-widget-id]');
+  if (!slot || !window.turnstile) return;
+  window.turnstile.reset(slot.dataset.turnstileWidgetId);
+}
+
+function refreshPublicRequestToken(form, token) {
+  const field = form.querySelector('input[name="request_token"]');
+  if (field && token) field.value = token;
+}
+
+document.addEventListener('turnstile-ready', () => initTurnstileWidgets());
+
 function initCommentForm() {
   const form = document.getElementById('comment-form');
   const wall = document.getElementById('comment-wall');
@@ -280,11 +339,13 @@ function initCommentForm() {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     status.className = 'comment-form-status';
-    status.textContent = 'Publicando tu comentario...';
+    status.textContent = 'Verificando y enviando tu comentario...';
 
     try {
       const data = await submitComment(form);
       form.reset();
+      refreshPublicRequestToken(form, data.request_token);
+      resetTurnstileWidget(form);
       const defaultRating = form.querySelector('input[name="rating"][value="5"]');
       const defaultEmoji = form.querySelector('input[name="emoji"][value="💚"]');
       if (defaultRating) defaultRating.checked = true;
@@ -292,6 +353,7 @@ function initCommentForm() {
       status.classList.add('success');
       status.textContent = data.message || 'Comentario recibido y enviado a revisión.';
     } catch (error) {
+      resetTurnstileWidget(form);
       status.classList.add('error');
       status.textContent = error.message || 'No se pudo enviar el comentario.';
     }
@@ -308,6 +370,7 @@ function initCommentForm() {
     replyForm.hidden = !replyForm.hidden;
     toggle.classList.toggle('is-open', !replyForm.hidden);
     if (!replyForm.hidden) {
+      initTurnstileWidgets(replyForm);
       const field = replyForm.querySelector('textarea, input[name="message"]');
       if (field) field.focus();
     }
@@ -327,11 +390,14 @@ function initCommentForm() {
     try {
       const data = await submitComment(replyForm);
       replyForm.reset();
+      refreshPublicRequestToken(replyForm, data.request_token);
+      resetTurnstileWidget(replyForm);
       if (replyStatus) {
         replyStatus.classList.add('success');
         replyStatus.textContent = data.message || 'Respuesta recibida y enviada a revisión.';
       }
     } catch (error) {
+      resetTurnstileWidget(replyForm);
       if (replyStatus) {
         replyStatus.classList.add('error');
         replyStatus.textContent = error.message || 'No se pudo publicar la respuesta.';

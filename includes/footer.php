@@ -64,7 +64,17 @@ $jsVersion = filemtime(__DIR__ . '/../assets/js/main.js');
   </button>
 </div>
 
-<script>window.PORTAL_BASE = '<?= e($base) ?>';</script>
+<script>
+window.PORTAL_BASE = <?= json_encode($base, JSON_UNESCAPED_SLASHES) ?>;
+window.PORTAL_ANALYTICS_TOKEN = <?= json_encode($analyticsRequestToken ?? '') ?>;
+window.PORTAL_TURNSTILE_SITE_KEY = <?= json_encode($turnstileSiteKey ?? '') ?>;
+window.onTurnstileReady = function () {
+  document.dispatchEvent(new CustomEvent('turnstile-ready'));
+};
+</script>
+<?php if (!empty($turnstileSiteKey)): ?>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileReady&amp;render=explicit" async defer></script>
+<?php endif; ?>
 <script src="<?= $base ?>/assets/js/main.js?v=<?= $jsVersion ?>"></script>
 </body>
 </html>

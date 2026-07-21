@@ -12,6 +12,11 @@ $siteSubtitle = getConfig('site_subtitle', 'Bienestar Social Laboral - Oficina d
 $footerEmails = array_filter(array_map('trim', explode(',', getConfig('footer_email', 'psicologiaorganizacional@unitropico.edu.co,climaorganizacional@unitropico.edu.co'))));
 $cssVersion = filemtime(__DIR__ . '/../assets/css/main.css');
 $faviconVersion = filemtime(__DIR__ . '/../assets/uploads/logo-pestana-pagina.png');
+$analyticsRequestToken = issuePublicRequestToken('analytics');
+if (!headers_sent()) {
+  header('Cache-Control: private, no-store, max-age=0');
+  header('Pragma: no-cache');
+}
 
 // Detectar página activa
 $currentScript = basename($_SERVER['SCRIPT_FILENAME']);

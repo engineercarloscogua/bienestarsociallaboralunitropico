@@ -871,6 +871,29 @@ body.page-leaving .topbar {
   font-size: 12.5px !important;
   line-height: 1.5 !important;
 }
+.comment-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+.turnstile-slot {
+  width: 100%;
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+}
+.turnstile-slot:empty::before {
+  content: 'Preparando verificación anti-bots…';
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.turnstile-slot iframe {
+  max-width: 100%;
+}
 .comment-wall {
   display: grid;
   grid-template-columns: 1fr;

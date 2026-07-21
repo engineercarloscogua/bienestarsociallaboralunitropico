@@ -68,7 +68,7 @@ testAssert(!databaseCanReplyToComment($testComment['id']), 'Falló la eliminaci�
 
 $testMonth = date('Y-m');
 $visitsBefore = (int)(databaseReadData()['analytics']['monthly'][$testMonth]['visits'] ?? 0);
-recordAnalyticsVisit('database-roundtrip-test', '/tests/database', 'Prueba de base');
+recordAnalyticsVisit('database-roundtrip-test-' . bin2hex(random_bytes(6)), '/tests/database', 'Prueba de base');
 $visitsAfter = (int)(databaseReadData()['analytics']['monthly'][$testMonth]['visits'] ?? 0);
 testAssert($visitsAfter === $visitsBefore + 1, 'Falló la actualización directa de analítica.');
 

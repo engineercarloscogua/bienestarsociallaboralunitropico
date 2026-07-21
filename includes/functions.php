@@ -277,13 +277,201 @@ function clearRateLimit(string $scope, string $key): void {
     });
 }
 
-function isSameOriginRequest(): bool {
+function isSameOriginRequest(bool $allowMissingSource = true): bool {
     $source = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
-    if ($source === '') return true;
+    if ($source === '') return $allowMissingSource;
 
     $sourceHost = strtolower((string)parse_url($source, PHP_URL_HOST));
     $serverHost = strtolower((string)parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
     return $sourceHost !== '' && hash_equals($serverHost, $sourceHost);
+}
+
+function publicRequestIsSecure(): bool {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;
+    return strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+}
+
+/**
+ * Sesión separada del panel administrativo para tokens públicos de un solo uso.
+ */
+function ensurePublicSession(): void {
+    if (session_status() === PHP_SESSION_ACTIVE) return;
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    session_name('unitropico_public');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => publicRequestIsSecure(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+function purgePublicRequestTokens(): void {
+    ensurePublicSession();
+    $now = time();
+    $tokens = (array)($_SESSION['public_request_tokens'] ?? []);
+
+    foreach ($tokens as $scope => $scopeTokens) {
+        $fresh = array_filter(
+            (array)$scopeTokens,
+            fn($createdAt) => (int)$createdAt >= $now - 7200
+        );
+        if ($fresh) $tokens[$scope] = array_slice($fresh, -80, null, true);
+        else unset($tokens[$scope]);
+    }
+
+    $_SESSION['public_request_tokens'] = $tokens;
+}
+
+function issuePublicRequestToken(string $scope): string {
+    $scope = preg_replace('/[^a-z0-9_-]/', '', strtolower($scope));
+    if ($scope === '') throw new InvalidArgumentException('El alcance del token público no es válido.');
+
+    purgePublicRequestTokens();
+    $token = bin2hex(random_bytes(24));
+    $_SESSION['public_request_tokens'][$scope][$token] = time();
+    return $token;
+}
+
+function validatePublicRequestToken(string $scope, string $token, int $minimumAge = 0, int $maximumAge = 7200): bool {
+    ensurePublicSession();
+    $scope = preg_replace('/[^a-z0-9_-]/', '', strtolower($scope));
+    $token = trim($token);
+    if ($scope === '' || !preg_match('/^[a-f0-9]{48}$/', $token)) return false;
+
+    $createdAt = (int)($_SESSION['public_request_tokens'][$scope][$token] ?? 0);
+    $age = time() - $createdAt;
+    return $createdAt > 0 && $age >= max(0, $minimumAge) && $age <= max(1, $maximumAge);
+}
+
+function consumePublicRequestToken(string $scope, string $token): void {
+    ensurePublicSession();
+    unset($_SESSION['public_request_tokens'][$scope][$token]);
+}
+
+function publicSessionVisitorId(): string {
+    ensurePublicSession();
+    if (empty($_SESSION['public_visitor_id'])) {
+        $_SESSION['public_visitor_id'] = 'v_' . bin2hex(random_bytes(18));
+    }
+    return (string)$_SESSION['public_visitor_id'];
+}
+
+function currentRequestHost(): string {
+    return strtolower((string)parse_url('http://' . ($_SERVER['HTTP_HOST'] ?? ''), PHP_URL_HOST));
+}
+
+function isLocalDevelopmentHost(): bool {
+    $host = currentRequestHost();
+    return in_array($host, ['', 'localhost', '127.0.0.1', '0.0.0.0', '::1'], true)
+        || str_ends_with($host, '.test');
+}
+
+function turnstileCredentials(): array {
+    $config = databaseConfig() ?? [];
+    $siteKey = trim((string)($config['turnstile_site_key'] ?? ''));
+    $secretKey = trim((string)($config['turnstile_secret_key'] ?? ''));
+    $testing = false;
+
+    if ($siteKey === '' && $secretKey === '' && isLocalDevelopmentHost()) {
+        $siteKey = '1x00000000000000000000AA';
+        $secretKey = '1x0000000000000000000000000000000AA';
+        $testing = true;
+    }
+
+    return [
+        'site_key' => $siteKey,
+        'secret_key' => $secretKey,
+        'enabled' => $siteKey !== '' && $secretKey !== '',
+        'testing' => $testing,
+    ];
+}
+
+function turnstileSiteKey(): string {
+    $credentials = turnstileCredentials();
+    return $credentials['enabled'] ? (string)$credentials['site_key'] : '';
+}
+
+function verifyTurnstileToken(string $token, string $expectedAction = 'comment'): bool {
+    $credentials = turnstileCredentials();
+    if (!$credentials['enabled']) return false;
+
+    $token = trim($token);
+    if ($token === '' || strlen($token) > 2048) return false;
+
+    $payload = http_build_query([
+        'secret' => $credentials['secret_key'],
+        'response' => $token,
+        'remoteip' => clientIpAddress(),
+    ]);
+    $response = false;
+
+    if (function_exists('curl_init')) {
+        $curl = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+        curl_setopt_array($curl, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+        ]);
+        $response = curl_exec($curl);
+        curl_close($curl);
+    } elseif (filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOL)) {
+        $context = stream_context_create(['http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $payload,
+            'timeout' => 8,
+        ]]);
+        $response = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
+    }
+
+    if (!is_string($response) || $response === '') return false;
+    $result = json_decode($response, true);
+    if (!is_array($result) || empty($result['success'])) return false;
+    if ($credentials['testing']) return true;
+
+    $action = trim((string)($result['action'] ?? ''));
+    $hostname = strtolower(trim((string)($result['hostname'] ?? '')));
+    return $action === $expectedAction
+        && $hostname !== ''
+        && hash_equals(currentRequestHost(), $hostname);
+}
+
+function isLikelyAutomatedUserAgent(string $userAgent): bool {
+    $userAgent = strtolower(trim($userAgent));
+    if ($userAgent === '') return true;
+
+    return (bool)preg_match(
+        '/(?:bot|spider|crawler|slurp|curl|wget|python-requests|python-urllib|httpclient|headless|selenium|playwright|phantomjs|scrapy|ahrefs|semrush|mj12bot|facebookexternalhit)/i',
+        $userAgent
+    );
+}
+
+/**
+ * Detecta mensajes incompatibles con el muro de experiencias. Se omiten en
+ * silencio para no confirmar a los emisores automáticos que fueron detectados.
+ */
+function isLikelyCommentSpam(string $name, string $message): bool {
+    $content = strtolower(trim($name . ' ' . $message));
+    if ($content === '') return false;
+
+    if (preg_match('~(?:https?://|www\.|\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b|\bt\.me/|\bwa\.me/)~iu', $content)) {
+        return true;
+    }
+
+    if (preg_match('/\b(?:whats?app|telegram|backlinks?|digital marketing|marketing digital|seo services?|sales funnel|conversion funnel|competitors?|consultant|casino|cryptocurrency|investment opportunity)\b/iu', $content)) {
+        return true;
+    }
+
+    $digits = preg_replace('/\D+/', '', $content);
+    return strlen($digits) >= 9;
 }
 
 function sanitizeContentUrl(string $url, bool $allowRelative = true): string {
@@ -431,18 +619,37 @@ function recordAnalyticsVisit(string $visitorId, string $path, string $title = '
 
     $month = date('Y-m');
     $day = date('Y-m-d');
+    $now = time();
     $visitorHash = substr(hash('sha256', $visitorId . '|unitropico-th'), 0, 18);
+    $visitHash = substr(hash('sha256', $visitorId . '|' . $path . '|unitropico-th-page'), 0, 24);
     $section = analyticsSectionName($path, $title);
 
-    $updateBucket = function (array &$bucket) use ($day, $visitorHash, $section, $path): void {
+    $updateBucket = function (array &$bucket) use ($day, $now, $visitorHash, $visitHash, $section, $path): void {
         if (!$bucket) {
             $bucket = [
                 'visits' => 0,
                 'visitors' => [],
                 'sections' => [],
                 'days' => [],
+                'recent_visits' => [],
             ];
         }
+
+        $recentVisits = array_filter(
+            (array)($bucket['recent_visits'] ?? []),
+            fn($timestamp) => (int)$timestamp > $now - 1800
+        );
+        if (isset($recentVisits[$visitHash])) {
+            $bucket['recent_visits'] = $recentVisits;
+            return;
+        }
+        $recentVisits[$visitHash] = $now;
+        if (count($recentVisits) > 5000) {
+            asort($recentVisits, SORT_NUMERIC);
+            $recentVisits = array_slice($recentVisits, -5000, null, true);
+        }
+        $bucket['recent_visits'] = $recentVisits;
+
         $bucket['visits'] = (int)($bucket['visits'] ?? 0) + 1;
         $bucket['visitors'][$visitorHash] = true;
         $bucket['days'][$day] = (int)($bucket['days'][$day] ?? 0) + 1;

@@ -9,13 +9,30 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!isSameOriginRequest()) {
+if (!isSameOriginRequest(false)) {
     http_response_code(403);
     echo json_encode(['ok' => false, 'message' => 'Solicitud no autorizada.']);
     exit;
 }
 
-$retryAfter = consumeRateLimit('analytics', clientSecurityKey('analytics'), 120, 60, 0);
+$requestToken = trim((string)($_POST['request_token'] ?? ''));
+$visibleSeconds = (int)($_POST['visible_seconds'] ?? 0);
+$hasInteraction = ($_POST['interaction'] ?? '') === '1';
+$userAgent = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+$fetchSite = strtolower(trim((string)($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '')));
+
+if (
+    !$hasInteraction
+    || $visibleSeconds < 8
+    || isLikelyAutomatedUserAgent($userAgent)
+    || ($fetchSite !== '' && $fetchSite !== 'same-origin')
+    || !validatePublicRequestToken('analytics', $requestToken, 8, 7200)
+) {
+    echo json_encode(['ok' => true, 'counted' => false], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+$retryAfter = consumeRateLimit('analytics', clientSecurityKey('analytics'), 30, 3600, 2);
 if ($retryAfter > 0) {
     http_response_code(429);
     header('Retry-After: ' . $retryAfter);
@@ -23,10 +40,11 @@ if ($retryAfter > 0) {
     exit;
 }
 
-$visitorId = $_POST['visitor_id'] ?? '';
+$visitorId = publicSessionVisitorId();
 $path = $_POST['path'] ?? '';
 $title = $_POST['title'] ?? '';
 
+consumePublicRequestToken('analytics', $requestToken);
 recordAnalyticsVisit($visitorId, $path, $title);
 
-echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE);
+echo json_encode(['ok' => true, 'counted' => true], JSON_UNESCAPED_UNICODE);

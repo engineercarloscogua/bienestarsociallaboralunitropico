@@ -7,6 +7,7 @@
 - Confirmar que `.htaccess`, `database/schema.sql` y `config/database.example.php` estén en el despliegue.
 - No incluir ZIP, `.env`, `config/database.local.php` ni credenciales.
 - Confirmar que los respaldos de Hostinger incluyan la base de datos y `public_html/assets/uploads/`.
+- Crear un widget gratuito de Cloudflare Turnstile limitado al dominio de producción.
 
 ## Preparar MariaDB
 
@@ -16,7 +17,8 @@
 4. En el Administrador de archivos crea una carpeta `private` al lado de `public_html`.
 5. Copia el contenido de `config/database.example.php` a `private/bienestar-database.php`.
 6. Completa host `localhost`, puerto `3306`, nombre, usuario y la contraseña nueva.
-7. Mantén inicialmente `storage => 'json'`.
+7. Completa `turnstile_site_key` y `turnstile_secret_key` con las claves del widget. La clave secreta debe permanecer únicamente en este archivo privado.
+8. Mantén inicialmente `storage => 'json'`.
 
 Si no recuerdas la contraseña del panel, agrega temporalmente una línea como esta, usando un token aleatorio propio de 32 caracteres o más:
 
@@ -42,7 +44,7 @@ Después abre `/admin/recover.php`, define la nueva contraseña y elimina inmedi
 1. Abrir `/index.php` y recorrer las secciones.
 2. Entrar a `/admin/login.php` con la contraseña vigente.
 3. Editar una tarjeta y comprobar el cambio público.
-4. Publicar un comentario de prueba y moderarlo.
+4. Enviar un comentario de prueba, comprobar la validación anti-bots y moderarlo.
 5. Navegar varias páginas y revisar la analítica del Dashboard.
 6. Subir una imagen pequeña desde `Admin -> Imágenes`.
 
