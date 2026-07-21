@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   initAnalytics();
+  initHeroNetwork();
   initSidebar();
   initScrollReveal();
   setActiveNav();
@@ -9,6 +10,139 @@ document.addEventListener('DOMContentLoaded', () => {
   initTurnstileWidgets();
   initCommentForm();
 });
+
+function initHeroNetwork() {
+  const canvas = document.getElementById('hero-network');
+  const hero = canvas?.closest('.hero');
+  if (!canvas || !hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const context = canvas.getContext('2d');
+  if (!context) return;
+
+  const particles = [];
+  const pointer = { x: 0, y: 0, active: false };
+  let width = 0;
+  let height = 0;
+  let pixelRatio = 1;
+  let animationFrame = 0;
+  let isVisible = true;
+
+  const randomParticle = () => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    vx: (Math.random() - 0.5) * 0.18,
+    vy: (Math.random() - 0.5) * 0.18,
+    radius: 1.1 + Math.random() * 1.35,
+    phase: Math.random() * Math.PI * 2,
+    gold: Math.random() > 0.82,
+  });
+
+  const resize = () => {
+    const bounds = hero.getBoundingClientRect();
+    width = Math.max(1, Math.round(bounds.width));
+    height = Math.max(1, Math.round(bounds.height));
+    pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * pixelRatio);
+    canvas.height = Math.round(height * pixelRatio);
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+    const desiredCount = Math.max(20, Math.min(52, Math.round(width / 30)));
+    while (particles.length < desiredCount) particles.push(randomParticle());
+    particles.length = desiredCount;
+    particles.forEach((particle) => {
+      particle.x = Math.min(particle.x, width);
+      particle.y = Math.min(particle.y, height);
+    });
+  };
+
+  const draw = (time) => {
+    context.clearRect(0, 0, width, height);
+    const connectionDistance = Math.min(132, Math.max(94, width / 11));
+
+    particles.forEach((particle, index) => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+
+      if (particle.x < -8) particle.x = width + 8;
+      if (particle.x > width + 8) particle.x = -8;
+      if (particle.y < -8) particle.y = height + 8;
+      if (particle.y > height + 8) particle.y = -8;
+
+      if (pointer.active) {
+        const dx = pointer.x - particle.x;
+        const dy = pointer.y - particle.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance > 0 && distance < 150) {
+          const attraction = (1 - distance / 150) * 0.012;
+          particle.x += dx * attraction;
+          particle.y += dy * attraction;
+        }
+      }
+
+      for (let nextIndex = index + 1; nextIndex < particles.length; nextIndex += 1) {
+        const next = particles[nextIndex];
+        const distance = Math.hypot(next.x - particle.x, next.y - particle.y);
+        if (distance >= connectionDistance) continue;
+
+        const opacity = (1 - distance / connectionDistance) * 0.3;
+        const gradient = context.createLinearGradient(particle.x, particle.y, next.x, next.y);
+        gradient.addColorStop(0, `rgba(211, 255, 246, ${opacity})`);
+        gradient.addColorStop(1, `rgba(243, 223, 145, ${opacity * 0.72})`);
+        context.beginPath();
+        context.moveTo(particle.x, particle.y);
+        context.lineTo(next.x, next.y);
+        context.strokeStyle = gradient;
+        context.lineWidth = 0.7;
+        context.stroke();
+      }
+
+      const pulse = 0.72 + Math.sin(time * 0.0012 + particle.phase) * 0.28;
+      context.beginPath();
+      context.arc(particle.x, particle.y, particle.radius * pulse, 0, Math.PI * 2);
+      context.fillStyle = particle.gold
+        ? `rgba(255, 231, 145, ${0.55 + pulse * 0.35})`
+        : `rgba(225, 255, 249, ${0.45 + pulse * 0.4})`;
+      context.shadowBlur = particle.gold ? 9 : 7;
+      context.shadowColor = particle.gold ? 'rgba(243, 223, 145, 0.7)' : 'rgba(139, 255, 232, 0.62)';
+      context.fill();
+      context.shadowBlur = 0;
+    });
+
+    if (isVisible && document.visibilityState === 'visible') {
+      animationFrame = window.requestAnimationFrame(draw);
+    }
+  };
+
+  const resume = () => {
+    window.cancelAnimationFrame(animationFrame);
+    if (isVisible && document.visibilityState === 'visible') {
+      animationFrame = window.requestAnimationFrame(draw);
+    }
+  };
+
+  hero.addEventListener('pointermove', (event) => {
+    const bounds = hero.getBoundingClientRect();
+    pointer.x = event.clientX - bounds.left;
+    pointer.y = event.clientY - bounds.top;
+    pointer.active = true;
+  }, { passive: true });
+  hero.addEventListener('pointerleave', () => { pointer.active = false; }, { passive: true });
+  document.addEventListener('visibilitychange', resume);
+
+  const resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(hero);
+
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    isVisible = entry.isIntersecting;
+    resume();
+  }, { threshold: 0.05 });
+  visibilityObserver.observe(hero);
+
+  resize();
+  resume();
+}
 
 function initAnalytics() {
   const endpoint = `${window.PORTAL_BASE || ''}/api/analytics.php`;

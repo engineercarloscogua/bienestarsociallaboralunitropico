@@ -24,11 +24,8 @@ require_once __DIR__ . '/includes/header.php';
     <div class="hero-bg" id="hero-bg"></div>
     <div class="hero-overlay"></div>
     <div class="hero-glow"></div>
+    <canvas class="hero-network" id="hero-network" aria-hidden="true"></canvas>
     <div class="hero-content">
-      <div class="hero-badge">
-        <?= icon('sparkles', '', 13) ?>
-        Portal Oficial · Unitrópico
-      </div>
       <h1 class="hero-title">
         <?php
           $parts = explode(' ', $heroTitle);
