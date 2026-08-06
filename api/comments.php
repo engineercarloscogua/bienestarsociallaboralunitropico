@@ -38,14 +38,6 @@ if ($honeypot !== '' || isLikelyCommentSpam($name, $message)) {
     $respondAsReceived($parentId !== '');
 }
 
-$retryAfter = consumeRateLimit('public_comment', clientSecurityKey('comments'), 3, 1800, 15);
-if ($retryAfter > 0) {
-    http_response_code(429);
-    header('Retry-After: ' . $retryAfter);
-    echo json_encode(['ok' => false, 'message' => 'Has enviado varios comentarios. Espera un momento antes de intentarlo de nuevo.']);
-    exit;
-}
-
 if ($message === '') {
     http_response_code(422);
     echo json_encode(['ok' => false, 'message' => 'Escribe un comentario antes de enviarlo.']);
@@ -74,6 +66,16 @@ if (!verifyTurnstileToken($turnstileToken, 'comment')) {
 if ($parentId !== '' && !canReplyToComment($parentId)) {
     http_response_code(422);
     echo json_encode(['ok' => false, 'message' => 'No se pudo encontrar el comentario para responder.']);
+    exit;
+}
+
+// Contabilizar solamente solicitudes que ya superaron las validaciones. Los
+// errores de sesión o de Turnstile no deben bloquear a una persona legítima.
+$retryAfter = consumeRateLimit('public_comment_v2', clientSecurityKey('comments'), 3, 1800, 15);
+if ($retryAfter > 0) {
+    http_response_code(429);
+    header('Retry-After: ' . $retryAfter);
+    echo json_encode(['ok' => false, 'message' => 'Has enviado varios comentarios. Espera un momento antes de intentarlo de nuevo.']);
     exit;
 }
 

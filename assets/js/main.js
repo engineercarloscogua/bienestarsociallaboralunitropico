@@ -441,11 +441,23 @@ function initTurnstileWidgets(root = document) {
 
   root.querySelectorAll('.turnstile-slot').forEach((slot) => {
     if (slot.dataset.turnstileWidgetId || slot.closest('[hidden]')) return;
+    const form = slot.closest('form');
+    const submitButton = form?.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
     const widgetId = window.turnstile.render(slot, {
       sitekey: slot.dataset.turnstileSitekey || siteKey,
       action: slot.dataset.turnstileAction || 'comment',
       theme: 'light',
       language: 'es',
+      callback: () => {
+        if (submitButton) submitButton.disabled = false;
+      },
+      'expired-callback': () => {
+        if (submitButton) submitButton.disabled = true;
+      },
+      'error-callback': () => {
+        if (submitButton) submitButton.disabled = true;
+      },
     });
     slot.dataset.turnstileWidgetId = String(widgetId);
   });
@@ -454,6 +466,8 @@ function initTurnstileWidgets(root = document) {
 function resetTurnstileWidget(form) {
   const slot = form.querySelector('.turnstile-slot[data-turnstile-widget-id]');
   if (!slot || !window.turnstile) return;
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
   window.turnstile.reset(slot.dataset.turnstileWidgetId);
 }
 
@@ -541,6 +555,12 @@ function initCommentForm() {
 }
 
 async function submitComment(form) {
+  const turnstileSlot = form.querySelector('.turnstile-slot');
+  const turnstileResponse = form.querySelector('input[name="cf-turnstile-response"]');
+  if (turnstileSlot && !turnstileResponse?.value) {
+    throw new Error('Espera a que finalice la verificación anti-bots antes de enviar.');
+  }
+
   const response = await fetch(form.action, {
     method: 'POST',
     body: new FormData(form),
