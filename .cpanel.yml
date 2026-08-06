@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/bnst26un1t7o/public_html
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -f index.php .htaccess $DEPLOYPATH/
+    - /bin/cp -R -f admin api assets config data database Images_pag includes pages $DEPLOYPATH/
