@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // pages/desarrollo.php — Desarrollo Profesional
 require_once __DIR__ . '/../includes/functions.php';
 

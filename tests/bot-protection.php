@@ -13,6 +13,18 @@ function botProtectionAssert(bool $condition, string $message): void {
     if (!$condition) throw new RuntimeException($message);
 }
 
+$phpSources = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator(dirname(__DIR__), FilesystemIterator::SKIP_DOTS)
+);
+foreach ($phpSources as $phpSource) {
+    if (!$phpSource->isFile() || strtolower($phpSource->getExtension()) !== 'php') continue;
+    $prefix = file_get_contents($phpSource->getPathname(), false, null, 0, 3);
+    botProtectionAssert(
+        $prefix !== "\xEF\xBB\xBF",
+        'Un archivo PHP contiene BOM y puede impedir el inicio seguro de sesión: ' . $phpSource->getPathname()
+    );
+}
+
 $spam = <<<'TEXT'
 I analyzed your website and competitors. Contact our Digital Strategy Consultant.
 WhatsApp: +1 913 735 7607 Telegram: @professionals_bot

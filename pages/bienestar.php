@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // pages/bienestar.php — Bienestar Laboral
 require_once __DIR__ . '/../includes/functions.php';
 
