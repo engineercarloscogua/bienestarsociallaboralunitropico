@@ -49,6 +49,9 @@ if ($formData === null) {
 $delegations = getAllDelegations();
 $adminInterimDelegations = array_values(array_filter($delegations, fn(array $row): bool => $row['delegation_type'] === 'interim'));
 $adminFixedDelegations = array_values(array_filter($delegations, fn(array $row): bool => $row['delegation_type'] === 'fixed'));
+$activeDelegations = array_values(array_filter($delegations, fn(array $row): bool => !empty($row['is_active']) && !delegationIsCompleted($row)));
+$completedDelegations = array_values(array_filter($delegations, fn(array $row): bool => !empty($row['is_active']) && delegationIsCompleted($row)));
+$hiddenDelegations = array_values(array_filter($delegations, fn(array $row): bool => empty($row['is_active'])));
 
 $noticeMessages = [
     'created' => ['success', 'Delegación creada correctamente.'],
@@ -101,13 +104,20 @@ $alert = $noticeMessages[$notice] ?? null;
       <?php if ($alert): ?><div class="alert alert-<?= e($alert[0]) ?>"><?= icon($alert[0] === 'error' ? 'x' : 'save','',15) ?> <?= e($alert[1]) ?></div><?php endif; ?>
       <?php if ($errors): ?><div class="alert alert-error"><?= icon('x','',15) ?><div><strong>No fue posible guardar:</strong><ul><?php foreach ($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?></ul></div></div><?php endif; ?>
 
-      <div class="delegations-admin-grid">
-        <section class="widget delegations-admin-form-card">
+      <section class="delegations-admin-summary" aria-label="Resumen de delegaciones">
+        <article><span class="summary-icon is-total"><?= icon('clipboard-check','',19) ?></span><div><strong><?= count($delegations) ?></strong><span>Registradas</span></div></article>
+        <article><span class="summary-icon is-active"><?= icon('users','',19) ?></span><div><strong><?= count($activeDelegations) ?></strong><span>Vigentes</span></div></article>
+        <article><span class="summary-icon is-completed"><?= icon('calendar','',19) ?></span><div><strong><?= count($completedDelegations) ?></strong><span>Culminadas</span></div></article>
+        <article><span class="summary-icon is-hidden"><?= icon('eye-off','',19) ?></span><div><strong><?= count($hiddenDelegations) ?></strong><span>Ocultas</span></div></article>
+      </section>
+
+      <div class="delegations-admin-stack">
+        <section class="widget delegations-admin-form-card" id="delegation-form-card">
           <div class="widget-header"><div><h3 class="widget-title"><?= icon((int)$formData['id'] > 0 ? 'edit' : 'plus','',16) ?> <?= (int)$formData['id'] > 0 ? 'Editar delegación' : 'Nueva delegación' ?></h3><p>Registra únicamente actos administrativos confirmados.</p></div></div>
           <form method="post" class="delegations-admin-form" id="delegation-form">
             <?= csrfField() ?>
             <input type="hidden" name="delegation_id" value="<?= (int)$formData['id'] ?>">
-            <div class="form-field">
+            <div class="form-field delegation-field-type">
               <label class="form-label" for="delegation-type">Tipo de delegación</label>
               <select class="form-select" id="delegation-type" name="delegation_type" required>
                 <option value="interim" <?= $formData['delegation_type'] === 'interim' ? 'selected' : '' ?>>Hasta proveer el cargo</option>
@@ -117,14 +127,14 @@ $alert = $noticeMessages[$notice] ?? null;
             <div class="form-field"><label class="form-label" for="delegation-resolution">Resolución / RR</label><input class="form-input" id="delegation-resolution" name="resolution_number" maxlength="80" required value="<?= e($formData['resolution_number']) ?>" placeholder="Ej. RR 1393 de 2026"></div>
             <div class="form-field"><label class="form-label" for="delegation-person">Persona delegada</label><input class="form-input" id="delegation-person" name="delegate_name" maxlength="160" required value="<?= e($formData['delegate_name']) ?>"></div>
             <div class="form-field"><label class="form-label" for="delegation-position">Cargo a delegar</label><input class="form-input" id="delegation-position" name="delegated_position" maxlength="200" required value="<?= e($formData['delegated_position']) ?>"></div>
-            <div class="form-row">
-              <div class="form-field"><label class="form-label" for="delegation-start">Fecha inicial</label><input class="form-input" id="delegation-start" type="date" name="start_date" required value="<?= e($formData['start_date']) ?>"></div>
-              <div class="form-field" id="delegation-end-field"><label class="form-label" for="delegation-end">Fecha final</label><input class="form-input" id="delegation-end" type="date" name="end_date" value="<?= e((string)$formData['end_date']) ?>"><small>Obligatoria solo para fecha fija.</small></div>
-            </div>
-            <label class="admin-check"><input type="checkbox" name="is_active" value="1" <?= !empty($formData['is_active']) ? 'checked' : '' ?>> Visible para el público</label>
-            <div class="delegations-admin-form-actions">
+            <div class="form-field"><label class="form-label" for="delegation-start">Fecha inicial</label><input class="form-input" id="delegation-start" type="date" name="start_date" required value="<?= e($formData['start_date']) ?>"></div>
+            <div class="form-field" id="delegation-end-field"><label class="form-label" for="delegation-end">Fecha final</label><input class="form-input" id="delegation-end" type="date" name="end_date" value="<?= e((string)$formData['end_date']) ?>"><small>Obligatoria solo para fecha fija.</small></div>
+            <div class="delegations-admin-form-footer">
+              <label class="admin-check"><input type="checkbox" name="is_active" value="1" <?= !empty($formData['is_active']) ? 'checked' : '' ?>> Visible para el público</label>
+              <div class="delegations-admin-form-actions">
               <?php if ((int)$formData['id'] > 0): ?><a class="btn btn-outline" href="<?= $base ?>/admin/delegations.php">Cancelar edición</a><?php endif; ?>
               <button class="btn btn-primary" type="submit" name="save_delegation"><?= icon('save','',14) ?> Guardar delegación</button>
+              </div>
             </div>
           </form>
         </section>
@@ -144,25 +154,31 @@ $alert = $noticeMessages[$notice] ?? null;
             <?php if (!$adminTable['rows']): ?>
               <div class="admin-empty">No hay registros en esta tabla.</div>
             <?php else: ?>
-            <div class="delegations-admin-list">
-            <?php foreach ($adminTable['rows'] as $delegation):
-              $completed = delegationIsCompleted($delegation);
-              $durationDays = delegationDurationDays($delegation);
-            ?>
-              <article class="delegations-admin-item <?= $completed ? 'is-completed' : '' ?>">
-                <div class="delegations-admin-item-main">
-                  <span class="delegations-admin-type type-<?= e($delegation['delegation_type']) ?>"><?= e(delegationTypeLabel($delegation['delegation_type'])) ?></span>
-                  <h4><?= e($delegation['delegate_name']) ?></h4>
-                  <p><?= e($delegation['delegated_position']) ?></p>
-                  <div><strong>RR <?= e($delegation['resolution_number']) ?></strong><span>Inicio: <?= e(delegationDateLabel($delegation['start_date'])) ?></span><span>Fin: <?= $delegation['end_date'] ? e(delegationDateLabel($delegation['end_date'])) : 'Hasta proveer' ?></span><?php if ($durationDays !== null): ?><span><?= (int)$durationDays ?> días</span><?php endif; ?></div>
-                </div>
-                <div class="delegations-admin-item-actions">
-                  <span class="status-badge <?= empty($delegation['is_active']) ? 'status-inactive' : ($completed ? 'status-completed' : 'status-active') ?>"><?= e(delegationStatusLabel($delegation)) ?></span>
-                  <a class="btn btn-outline btn-sm" href="?edit=<?= (int)$delegation['id'] ?>"><?= icon('edit','',13) ?> Editar</a>
-                  <form method="post" onsubmit="return confirm('¿Eliminar esta delegación definitivamente?');"><?= csrfField() ?><input type="hidden" name="delegation_id" value="<?= (int)$delegation['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" name="delete_delegation"><?= icon('trash','',13) ?> Eliminar</button></form>
-                </div>
-              </article>
-            <?php endforeach; ?>
+            <div class="delegations-admin-table-wrap">
+              <table class="delegations-admin-table">
+                <thead><tr><th>Resolución</th><th>Persona y cargo</th><th>Fecha inicial</th><th>Fecha final</th><th>Días</th><th>Estado</th><th class="actions-column">Acciones</th></tr></thead>
+                <tbody>
+                <?php foreach ($adminTable['rows'] as $delegation):
+                  $completed = delegationIsCompleted($delegation);
+                  $durationDays = delegationDurationDays($delegation);
+                ?>
+                  <tr class="<?= $completed ? 'is-completed' : '' ?> <?= empty($delegation['is_active']) ? 'is-hidden' : '' ?>">
+                    <td data-label="Resolución"><span class="delegations-admin-resolution">RR <?= e($delegation['resolution_number']) ?></span></td>
+                    <td data-label="Persona y cargo"><strong class="delegations-admin-person"><?= e($delegation['delegate_name']) ?></strong><span class="delegations-admin-position"><?= e($delegation['delegated_position']) ?></span></td>
+                    <td data-label="Fecha inicial"><time datetime="<?= e($delegation['start_date']) ?>"><?= e(delegationDateLabel($delegation['start_date'])) ?></time></td>
+                    <td data-label="Fecha final"><?= $delegation['end_date'] ? '<time datetime="' . e($delegation['end_date']) . '">' . e(delegationDateLabel($delegation['end_date'])) . '</time>' : '<span class="delegations-open-ended">Hasta proveer</span>' ?></td>
+                    <td data-label="Días"><strong><?= $durationDays !== null ? (int)$durationDays : '—' ?></strong></td>
+                    <td data-label="Estado"><span class="status-badge <?= empty($delegation['is_active']) ? 'status-inactive' : ($completed ? 'status-completed' : 'status-active') ?>"><?= e(delegationStatusLabel($delegation)) ?></span></td>
+                    <td data-label="Acciones">
+                      <div class="delegations-admin-row-actions">
+                        <a class="btn btn-outline btn-sm" href="?edit=<?= (int)$delegation['id'] ?>#delegation-form-card" title="Editar delegación"><?= icon('edit','',13) ?> Editar</a>
+                        <form method="post" onsubmit="return confirm('¿Eliminar esta delegación definitivamente?');"><?= csrfField() ?><input type="hidden" name="delegation_id" value="<?= (int)$delegation['id'] ?>"><button class="btn btn-danger btn-sm" type="submit" name="delete_delegation" title="Eliminar delegación"><?= icon('trash','',13) ?> Eliminar</button></form>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+                </tbody>
+              </table>
             </div>
             <?php endif; ?>
           </section>
