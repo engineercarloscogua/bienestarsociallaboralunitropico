@@ -11,6 +11,7 @@ Portal público y panel administrativo autogestionable en PHP 8. El contenido pu
 - Configuración y cambio de contraseña desde el panel.
 - Integraciones con Google Calendar, Google Forms y recursos externos.
 - Reproductores adaptables para videos de YouTube y archivos compartidos desde Google Drive.
+- Dos tablas públicas de delegaciones, administradas desde el panel y almacenadas en JSON independiente.
 - Migraciones de contenido versionadas y almacenamiento transaccional.
 
 ## Requisitos en Hostinger hPanel
@@ -33,6 +34,8 @@ MariaDB almacena configuración, páginas, tarjetas, programas, usuario administ
 En el editor de subpáginas, un bloque multimedia incrusta automáticamente enlaces válidos de YouTube o Google Drive. Los archivos de Drive deben permitir acceso a las personas que tengan el enlace. Otros dominios se muestran como botones externos y no se incrustan.
 
 Todas las escrituras a MariaDB usan transacciones InnoDB y un bloqueo lógico para evitar que dos solicitudes simultáneas sobrescriban cambios. Si MariaDB falla, el portal muestra el error y no cambia silenciosamente a JSON, porque eso dividiría los datos.
+
+Las delegaciones son una excepción deliberada: siempre se guardan en `data/delegations.json`, aunque el resto del portal use MariaDB. Este módulo no crea tablas SQL. `data/delegations.example.json` contiene solamente el estado inicial y se usa una vez cuando todavía no existe el archivo vivo.
 
 ## Configuración privada
 
@@ -84,13 +87,17 @@ Copia la plantilla como `config/database.local.php`, crea una base local e impor
 php tests/database-roundtrip.php
 php tests/bot-protection.php
 php tests/analytics-engagement.php
+php tests/delegations-module.php
+php tests/delegations-deployment.php
 ```
 
 El test importa el JSON local, lo reconstruye desde MariaDB y valida las actualizaciones transaccionales. Debe ejecutarse solo contra una base de pruebas.
 
 ## Datos y despliegues desde GitHub
 
-`data/data.json`, `data/security.json`, los archivos de bloqueo, los ZIP y la configuración local están excluidos de Git. Por eso un despliegue no debe sobrescribir los comentarios ni las credenciales de producción.
+`data/data.json`, `data/security.json`, `data/delegations.json`, `data/delegations.backup.json`, los archivos de bloqueo, los ZIP y la configuración local están excluidos de Git. Por eso un despliegue no debe sobrescribir los comentarios, las delegaciones administradas ni las credenciales de producción.
+
+El despliegue de cPanel excluye deliberadamente el directorio `data` de la copia recursiva. Solo copia una lista segura de plantillas, migraciones y reglas de protección; nunca copia los archivos JSON vivos. Antes de cada creación, edición u eliminación de una delegación, la aplicación conserva el estado anterior en `data/delegations.backup.json`. Git no reemplaza los respaldos del hosting, por lo que ambos JSON deben incluirse también en las copias de seguridad periódicas.
 
 Los nuevos archivos cargados desde el panel en `assets/uploads/` también quedan ignorados por Git. Los recursos institucionales que ya estaban versionados continúan normalmente en el repositorio. Aun así, la base de datos y `assets/uploads/` deben incluirse en los respaldos de Hostinger, porque Git no sustituye una copia de seguridad de los archivos generados en producción.
 
@@ -102,5 +109,7 @@ Los cambios de contenido versionados viven en `data/migrations/` y se aplican un
 - Administración: `/admin/login.php`
 - Recuperación temporal: `/admin/recover.php`
 - Estado y migración de base: `/admin/database.php`
+- Consulta pública de delegaciones: `/pages/delegaciones.php`
+- Administración de delegaciones: `/admin/delegations.php`
 
 La configuración privada, `data/`, `database/`, `includes/`, `tests/` y otras carpetas internas están bloqueadas desde `.htaccess`.

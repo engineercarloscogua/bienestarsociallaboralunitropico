@@ -1,6 +1,7 @@
 <?php
 // Autenticación del panel administrador sobre el almacenamiento activo.
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/delegations.php';
 
 function isSecureRequest(): bool {
     if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;

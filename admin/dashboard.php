@@ -94,6 +94,11 @@ $calId        = getConfig('google_calendar_id',   '');
       <a href="<?= $base ?>/admin/media.php" class="admin-nav-item">
         <?= icon('image','',16) ?> Imágenes
       </a>
+      <?php if (delegationsModuleEnabled()): ?>
+      <a href="<?= $base ?>/admin/delegations.php" class="admin-nav-item">
+        <?= icon('clipboard-check','',16) ?> Delegaciones
+      </a>
+      <?php endif; ?>
       <a href="<?= $base ?>/admin/database.php" class="admin-nav-item">
         <?= icon('settings','',16) ?> Base de datos
       </a>

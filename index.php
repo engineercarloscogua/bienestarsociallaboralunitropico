@@ -3,6 +3,7 @@
 // index.php — Página Principal del Portal Bienestar Social Laboral
 // ============================================================
 require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/delegations.php';
 
 $pageTitle   = 'Inicio';
 $heroTitle   = getConfig('hero_title',    'Bienvenidos a Bienestar Social Laboral');
@@ -43,6 +44,12 @@ require_once __DIR__ . '/includes/header.php';
           <?= icon('calendar', '', 16) ?>
           Calendario de Actividades
         </a>
+        <?php if (delegationsModuleEnabled()): ?>
+        <a href="<?= $base ?>/pages/delegaciones.php" class="btn-hero-transparent">
+          <?= icon('clipboard-check', '', 16) ?>
+          Tabla de delegaciones
+        </a>
+        <?php endif; ?>
       </div>
     </div>
   </section>

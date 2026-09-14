@@ -13,6 +13,9 @@ return [
     'password' => 'CONTRASENA_NUEVA_Y_PRIVADA',
     'charset' => 'utf8mb4',
 
+    // Funcionalidad experimental. Sus registros se guardan en data/delegations.json.
+    'delegations_module_enabled' => true,
+
     // Protección gratuita de comentarios con Cloudflare Turnstile. La clave
     // pública se muestra en el HTML; la secreta debe permanecer en este archivo.
     'turnstile_site_key' => '',

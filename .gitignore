@@ -17,6 +17,9 @@ tmp/*
 # Datos persistentes de producción
 /data/data.json
 /data/security.json
+/data/delegations.json
+/data/delegations.backup.json
+/data/delegations.lock
 
 # Archivos cargados desde el panel (los assets ya versionados siguen en Git)
 /assets/uploads/*

@@ -1,0 +1,96 @@
+{
+    "next_id": 10,
+    "delegations": [
+        {
+            "id": 1,
+            "delegation_type": "interim",
+            "resolution_number": "1393",
+            "delegate_name": "Neffer San.",
+            "delegated_position": "Admisiones",
+            "start_date": "2026-09-01",
+            "end_date": null,
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "id": 3,
+            "delegation_type": "interim",
+            "resolution_number": "2446",
+            "delegate_name": "Kely Gutierrez",
+            "delegated_position": "ORI",
+            "start_date": "2026-09-01",
+            "end_date": null,
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "id": 4,
+            "delegation_type": "interim",
+            "resolution_number": "2433",
+            "delegate_name": "Brandon R",
+            "delegated_position": "Control I.D",
+            "start_date": "2026-09-01",
+            "end_date": null,
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "id": 5,
+            "delegation_type": "fixed",
+            "resolution_number": "1585",
+            "delegate_name": "Sindy Guatava / Sanabria Neffer",
+            "delegated_position": "Rectoría",
+            "start_date": "2026-09-06",
+            "end_date": "2026-09-13",
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "id": 6,
+            "delegation_type": "fixed",
+            "resolution_number": "1586",
+            "delegate_name": "Luis Dineldo",
+            "delegated_position": "SIAC",
+            "start_date": "2026-09-06",
+            "end_date": "2026-09-13",
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "id": 7,
+            "delegation_type": "fixed",
+            "resolution_number": "1598",
+            "delegate_name": "Paula Solano",
+            "delegated_position": "ORI",
+            "start_date": "2026-09-08",
+            "end_date": "2026-09-11",
+            "is_active": 1,
+            "created_by": "imagen-proporcionada",
+            "created_at": "2026-09-14T12:00:00-05:00",
+            "updated_at": "2026-09-14T12:00:00-05:00"
+        },
+        {
+            "delegation_type": "fixed",
+            "resolution_number": "1614",
+            "delegate_name": "Leidy Rodriguez",
+            "delegated_position": "Tecnico de archivo",
+            "start_date": "2026-09-14",
+            "end_date": "2026-10-21",
+            "is_active": 1,
+            "id": 9,
+            "created_by": "admin",
+            "created_at": "2026-09-14T21:15:16+00:00",
+            "updated_at": "2026-09-14T21:15:16+00:00"
+        }
+    ]
+}

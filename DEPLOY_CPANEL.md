@@ -4,9 +4,11 @@
 
 - Rotar en hPanel cualquier contraseña de base de datos que se haya compartido en chats o capturas.
 - Descargar un respaldo de `public_html/data/data.json`.
+- Descargar también `public_html/data/delegations.json` y `delegations.backup.json` si ya existen.
 - Confirmar que `.htaccess`, `database/schema.sql` y `config/database.example.php` estén en el despliegue.
 - No incluir ZIP, `.env`, `config/database.local.php` ni credenciales.
 - Confirmar que los respaldos de Hostinger incluyan la base de datos y `public_html/assets/uploads/`.
+- Confirmar que `.cpanel.yml` no copie ni elimine los JSON vivos de `public_html/data/`.
 - Crear un widget gratuito de Cloudflare Turnstile limitado al dominio de producción.
 
 ## Preparar MariaDB
@@ -32,6 +34,7 @@ Después abre `/admin/recover.php`, define la nueva contraseña y elimina inmedi
 
 1. Ejecuta el despliegue desde GitHub.
 2. Comprueba que `public_html/data/data.json` siga presente; si falta, restaura el respaldo antes de abrir el panel.
+   Comprueba también que `public_html/data/delegations.json` conserve sus registros. En la primera instalación se creará desde `delegations.example.json`.
 3. Recupera primero el acceso desde `/admin/recover.php` si fuera necesario.
 4. Entra en `/admin/database.php`.
 5. Verifica que la conexión y el esquema aparezcan como listos.
@@ -47,6 +50,7 @@ Después abre `/admin/recover.php`, define la nueva contraseña y elimina inmedi
 4. Enviar un comentario de prueba, comprobar la validación anti-bots y moderarlo.
 5. Navegar varias páginas y revisar la analítica del Dashboard.
 6. Subir una imagen pequeña desde `Admin -> Imágenes`.
+7. Entrar en `Admin -> Delegaciones`, crear o editar un registro y confirmar que el cambio aparezca en `/pages/delegaciones.php`.
 
 ## Permisos
 
@@ -54,6 +58,7 @@ Después abre `/admin/recover.php`, define la nueva contraseña y elimina inmedi
 - Archivos: `644`.
 - `assets/uploads/`: `755` o `775` si PHP no puede escribir.
 - `data/`: requiere escritura solo mientras se use JSON o se conserve su funcionamiento de respaldo.
+- `data/delegations.json` requiere escritura siempre que esté activo el módulo de delegaciones, incluso si el portal usa MariaDB.
 
 Evita permisos `777`.
 

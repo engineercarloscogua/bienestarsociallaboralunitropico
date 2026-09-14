@@ -3,5 +3,8 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/bnst26un1t7o/public_html
     - /bin/mkdir -p $DEPLOYPATH
+    - /bin/mkdir -p $DEPLOYPATH/data $DEPLOYPATH/data/migrations
     - /bin/cp -f index.php .htaccess $DEPLOYPATH/
-    - /bin/cp -R -f admin api assets config data database Images_pag includes pages $DEPLOYPATH/
+    - /bin/cp -R -f admin api assets config database Images_pag includes pages $DEPLOYPATH/
+    - /bin/cp -f data/.htaccess data/data.example.json data/delegations.example.json $DEPLOYPATH/data/
+    - /bin/cp -f data/migrations/*.php $DEPLOYPATH/data/migrations/
