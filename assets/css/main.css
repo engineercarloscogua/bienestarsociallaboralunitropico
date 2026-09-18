@@ -67,6 +67,19 @@
 .delegations-hero p { max-width: 670px; color: rgba(255,255,255,.86); font-size: 15px; }
 .delegations-hero-mark { width: 130px; height: 130px; flex: 0 0 130px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px solid rgba(255,255,255,.34); border-radius: 50%; background: rgba(255,255,255,.12); backdrop-filter: blur(8px); }
 .delegations-hero-mark span { font-size: 10px; font-weight: 800; }
+.delegation-filter-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #fff; box-shadow: 0 8px 22px rgba(31,47,43,.05); }
+.delegation-filter-field { display: grid; gap: 5px; min-width: 150px; }
+.delegation-search-field { flex: 1 1 270px; }
+.delegation-filter-field label { color: var(--text-secondary); font-size: 12px; font-weight: 800; }
+.delegation-filter-field input, .delegation-filter-field select { width: 100%; height: 43px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text-primary); font: inherit; font-size: 13px; }
+.delegation-filter-field input:focus, .delegation-filter-field select:focus { border-color: var(--primary); outline: 2px solid rgba(0,107,91,.13); }
+.delegation-filter-details { display: flex; align-items: end; gap: 12px; }
+.delegation-filter-details[hidden] { display: none !important; }
+.delegation-filter-actions { display: flex; align-items: center; gap: 11px; min-height: 43px; }
+.delegation-filter-actions button { height: 43px; padding: 0 16px; border: 0; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.delegation-filter-actions a { color: var(--text-secondary); font-size: 13px; font-weight: 800; }
+.delegations-period-note { margin: -5px 2px 0; color: var(--text-secondary); font-size: 13px; }
+.delegations-period-note strong { color: var(--primary); }
 .delegations-filter {
   display: flex;
   align-items: center;
@@ -91,15 +104,24 @@
 .delegations-summary strong { display: block; color: var(--primary); font-family: 'Nunito Sans', Arial, sans-serif; font-size: 25px; }
 .delegations-summary span { color: var(--text-muted); font-size: 11px; font-weight: 700; }
 .delegations-table-card { overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-lg); background: #fff; box-shadow: 0 10px 28px rgba(31,47,43,.06); }
-.delegations-table-card > header { display: flex; gap: 13px; align-items: center; padding: 20px 22px; border-bottom: 1px solid var(--border); }
-.delegations-table-card.tone-interim > header { background: linear-gradient(90deg,rgba(0,124,114,.08),rgba(255,255,255,0)); }
-.delegations-table-card.tone-fixed > header { background: linear-gradient(90deg,rgba(184,162,97,.13),rgba(255,255,255,0)); }
+.delegations-table-card > summary { display: flex; gap: 13px; align-items: center; padding: 20px 22px; cursor: pointer; list-style: none; }
+.delegations-table-card > summary::-webkit-details-marker { display: none; }
+.delegations-table-card[open] > summary { border-bottom: 1px solid var(--border); }
+.delegations-table-card > summary:hover { background-color: rgba(0,107,91,.04); }
+.delegations-table-card > summary:focus-visible { outline: 3px solid rgba(0,107,91,.35); outline-offset: -3px; }
+.delegations-table-card.tone-interim > summary { background-image: linear-gradient(90deg,rgba(0,124,114,.08),rgba(255,255,255,0)); }
+.delegations-table-card.tone-fixed > summary { background-image: linear-gradient(90deg,rgba(184,162,97,.13),rgba(255,255,255,0)); }
+.delegations-table-heading { min-width: 0; flex: 1; }
+.delegations-table-meta { flex: 0 0 auto; color: var(--text-secondary); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.delegations-table-meta strong { color: var(--primary); font-size: 15px; }
+.delegations-table-chevron { width: 10px; height: 10px; flex: 0 0 10px; margin: -5px 4px 0 8px; border-right: 2px solid var(--primary); border-bottom: 2px solid var(--primary); transform: rotate(45deg); transition: transform .2s ease, margin .2s ease; }
+.delegations-table-card[open] .delegations-table-chevron { margin-top: 4px; transform: rotate(225deg); }
 .delegations-table-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; background: rgba(0,107,91,.1); color: var(--primary); }
 .tone-fixed .delegations-table-icon { background: rgba(184,162,97,.16); color: #8b7936; }
 .delegations-table-card h2 { color: var(--primary); font-family: 'Nunito Sans', Arial, sans-serif; font-size: 21px; }
-.delegations-table-card header p { margin-top: 3px; color: var(--text-muted); font-size: 14px; }
+.delegations-table-card summary p { margin-top: 3px; color: var(--text-muted); font-size: 14px; }
 .delegations-table-scroll { overflow-x: auto; }
-.delegations-table { width: 100%; border-collapse: collapse; }
+.delegations-table { width: 100%; min-width: 1120px; border-collapse: collapse; }
 .delegations-table th { padding: 14px 16px; border-bottom: 1px solid var(--border); background: #f5f8f6; color: var(--text-secondary); font-size: 12px; font-weight: 900; letter-spacing: .35px; text-align: left; text-transform: uppercase; white-space: nowrap; }
 .delegations-table td { padding: 17px 16px; border-bottom: 1px solid #edf2ef; color: var(--text-secondary); font-size: 15px; line-height: 1.45; vertical-align: middle; }
 .delegations-table tr:last-child td { border-bottom: 0; }
@@ -108,12 +130,18 @@
 .delegations-table tbody tr.delegation-completed { background: #fff1f0; }
 .delegations-table tbody tr.delegation-completed:hover { background: #ffe8e5; }
 .delegations-table tbody tr.delegation-completed td { border-bottom-color: #f2c9c5; }
+.delegations-table tbody tr.delegation-ending { background: #fff8dc; }
+.delegations-table tbody tr.delegation-ending:hover { background: #fff0bd; }
+.delegations-table tbody tr.delegation-ending td { border-bottom-color: #f4dfae; }
+.delegations-act-type { display: block; min-width: 115px; color: var(--text-secondary); font-size: 13px; font-weight: 800; line-height: 1.3; }
 .delegations-resolution { display: inline-flex; padding: 6px 9px; border-radius: 8px; background: var(--bg-soft); color: var(--primary); font-size: 15px; font-weight: 900; }
 .delegations-open-date { color: var(--primary); font-weight: 800; }
 .delegations-days { display: inline-grid; min-width: 38px; min-height: 34px; place-items: center; border-radius: 9px; background: var(--bg-soft); color: var(--primary) !important; }
 .delegations-state { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 900; white-space: nowrap; }
 .delegations-state.is-current { color: #006b5b; background: #e2f4ef; }
+.delegations-state.is-ending { color: #805b00; background: #ffebaa; }
 .delegations-state.is-completed { color: #b42318; background: #fbd8d4; }
+.delegations-state.is-active { color: #006b5b; background: #e2f4ef; }
 .delegations-summary .has-completed { border-color: #edc1bd; background: #fff3f1; }
 .delegations-summary .has-completed strong { color: #b42318; }
 .delegations-empty { display: grid; place-items: center; gap: 8px; padding: 38px 22px; color: var(--text-muted); text-align: center; }
@@ -121,17 +149,25 @@
 .delegations-note p { color: var(--text-secondary); font-size: 12px; }
 
 @media (max-width: 800px) {
+  .delegation-filter-details { flex-wrap: wrap; }
   .delegations-filter { align-items: stretch; flex-direction: column; }
   .delegations-month-form { flex-wrap: wrap; }
   .delegations-month-form input { flex: 1; min-width: 160px; }
 }
 @media (max-width: 640px) {
+  .delegation-filter-form, .delegation-filter-details { display: grid; grid-template-columns: 1fr; }
+  .delegation-filter-field { min-width: 0; }
+  .delegation-filter-actions { justify-content: space-between; }
   .hero-actions .btn-hero-transparent { width: 100%; }
   .delegations-hero { padding: 26px 23px; }
   .delegations-hero-mark { display: none; }
   .delegations-summary { grid-template-columns: 1fr; }
+  .delegations-table-card > summary { flex-wrap: wrap; padding: 17px; }
+  .delegations-table-meta { order: 4; flex-basis: 100%; padding-left: 55px; white-space: normal; }
+  .delegations-table-chevron { order: 3; }
   .delegations-month-form .btn-primary { flex: 1 0 100%; }
   .delegations-table thead { display: none; }
+  .delegations-table { min-width: 0; }
   .delegations-table, .delegations-table tbody, .delegations-table tr, .delegations-table td { display: block; width: 100%; }
   .delegations-table tr { padding: 12px 15px; border-bottom: 1px solid var(--border); }
   .delegations-table td { display: grid; grid-template-columns: 125px 1fr; gap: 10px; padding: 8px 0; border: 0; }

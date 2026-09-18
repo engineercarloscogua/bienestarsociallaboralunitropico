@@ -27,10 +27,11 @@
 }
 
 /* Gestión de delegaciones */
-.delegations-admin-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 18px; }
+.delegations-admin-summary { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; margin-bottom: 18px; }
 .delegations-admin-summary article { display: flex; align-items: center; gap: 12px; min-height: 82px; padding: 16px 18px; border: 1px solid rgba(203,215,226,.9); border-radius: var(--radius-md); background: rgba(255,255,255,.92); box-shadow: 0 8px 24px rgba(36,51,47,.04); }
 .delegations-admin-summary .summary-icon { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border-radius: 12px; color: var(--primary); background: #e8f4f0; }
 .delegations-admin-summary .summary-icon.is-active { color: #087d69; background: #ddf5ed; }
+.delegations-admin-summary .summary-icon.is-ending { color: #8a6200; background: #fff0be; }
 .delegations-admin-summary .summary-icon.is-completed { color: #b42318; background: #fee9e7; }
 .delegations-admin-summary .summary-icon.is-hidden { color: #66706d; background: #edf1ef; }
 .delegations-admin-summary article div { display: grid; line-height: 1.15; }
@@ -39,10 +40,30 @@
 .delegations-admin-stack { display: grid; gap: 18px; }
 .delegations-admin-form-card, .delegations-admin-list-card { margin: 0; }
 .delegations-admin-stack .widget-header p { margin-top: 4px; color: var(--text-m); font-size: 11px; }
+.delegations-import-card { margin: 0; }
+.delegations-import-content { display: grid; gap: 16px; }
+.delegations-import-content > .btn { justify-self: start; }
+.delegations-import-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #f7faf9; }
+.delegations-import-form label { flex-basis: 100%; }
+.delegations-import-form input { flex: 1 1 280px; max-width: 580px; padding: 8px 10px; }
+.delegations-import-preview { padding: 16px; border: 1px solid #b8d9ce; border-radius: var(--radius-md); background: #f2faf6; }
+.delegations-import-preview h4 { margin: 0 0 5px; color: var(--primary); font-size: 14px; }
+.delegations-import-preview p { margin: 0 0 12px; color: var(--text-s); font-size: 12px; }
+.delegations-import-preview-list { max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.delegations-import-preview-list > div { display: grid; grid-template-columns: 90px minmax(0,1fr) 110px; gap: 10px; padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text-s); font-size: 12px; }
+.delegations-import-preview-list > div:last-child { border-bottom: 0; }
+.delegations-import-preview-list strong { color: var(--text-p); }
+.delegations-import-preview-list p { padding: 10px 12px; }
+.delegations-import-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.delegations-import-actions form { margin: 0; }
 .delegations-admin-form { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
-.delegations-admin-form .form-field { display: grid; gap: 6px; }
+.delegations-admin-form .form-field { display: grid; min-width: 0; gap: 6px; }
+.delegations-admin-form .delegation-position-field { grid-column: span 2; }
+.delegations-admin-form .delegation-position-field select { min-width: 0; text-overflow: ellipsis; }
+.delegations-admin-form input[readonly] { background: #f3f7f5; color: var(--text-s); }
 .delegations-admin-form .form-field small { color: var(--text-m); font-size: 10px; }
 .delegations-admin-form .form-field.is-disabled { opacity: .48; }
+.delegations-uppercase { text-transform: uppercase; }
 .delegations-admin-form-footer { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
 .admin-check { display: flex; align-items: center; gap: 8px; color: var(--text-s); font-size: 12px; font-weight: 800; }
 .delegations-admin-form-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
@@ -52,26 +73,43 @@
 .delegations-admin-group > header h4 { color: var(--primary); font-family: 'Nunito Sans',Arial,sans-serif; font-size: 14px; }
 .delegations-admin-group > header span { padding: 4px 9px; border-radius: 999px; background: #fff; color: var(--text-s); box-shadow: inset 0 0 0 1px var(--border); font-size: 10px; font-weight: 800; }
 .delegations-admin-table-wrap { width: 100%; overflow-x: auto; }
-.delegations-admin-table { width: 100%; min-width: 920px; border-collapse: collapse; font-size: 12px; }
+.delegations-admin-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 12px; }
 .delegations-admin-table th { padding: 10px 12px; background: #f9fbfa; color: var(--text-m); font-size: 9px; font-weight: 900; letter-spacing: .06em; text-align: left; text-transform: uppercase; white-space: nowrap; }
 .delegations-admin-table td { padding: 13px 12px; border-top: 1px solid #edf2ef; color: var(--text-s); vertical-align: middle; }
 .delegations-admin-table tbody tr { transition: background .18s ease; }
 .delegations-admin-table tbody tr:hover { background: #f7faf8; }
 .delegations-admin-table tbody tr.is-completed { background: #fff3f2; }
 .delegations-admin-table tbody tr.is-completed:hover { background: #ffebe9; }
+.delegations-admin-table tbody tr.is-ending { background: #fff8dc; }
+.delegations-admin-table tbody tr.is-ending:hover { background: #fff0bd; }
 .delegations-admin-table tbody tr.is-hidden { opacity: .62; background: #f5f6f6; }
 .delegations-admin-table .actions-column { text-align: right; }
 .delegations-admin-resolution { display: inline-flex; padding: 5px 8px; border-radius: 7px; color: var(--primary); background: #e8f4f0; font-weight: 900; white-space: nowrap; }
+.delegations-admin-act-type { display: block; min-width: 105px; max-width: 145px; color: var(--text-s); font-size: 11px; font-weight: 800; line-height: 1.3; }
 .delegations-admin-person { display: block; color: var(--text-p); font-size: 13px; line-height: 1.3; }
 .delegations-admin-position { display: block; margin-top: 3px; color: var(--text-m); line-height: 1.3; }
+.delegations-admin-unit { display: block; margin-top: 4px; color: var(--primary); font-size: 10px; font-weight: 800; line-height: 1.3; }
 .delegations-open-ended { color: var(--bronze-dark); font-weight: 800; white-space: nowrap; }
 .delegations-admin-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .delegations-admin-row-actions form { margin: 0; }
 .status-badge { display: inline-flex; padding: 5px 8px; border-radius: 999px; font-size: 9px; font-weight: 900; text-transform: uppercase; }
 .status-active { color: #006b5b; background: #e4f4ef; }
-.status-inactive { color: #66706d; background: #edf1ef; }
+.status-ending { color: #805b00; background: #ffebaa; }
+.status-hidden { color: #66706d; background: #edf1ef; }
 .status-completed { color: #b42318; background: #fbd8d4; }
 .admin-empty { padding: 38px 18px; color: var(--text-m); text-align: center; }
+
+.delegation-filter-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 0 0 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #f7faf9; }
+.delegation-filter-field { display: grid; gap: 5px; min-width: 140px; }
+.delegation-search-field { flex: 1 1 250px; }
+.delegation-filter-field label { color: var(--text-s); font-size: 11px; font-weight: 800; }
+.delegation-filter-field input, .delegation-filter-field select { width: 100%; height: 39px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; color: var(--text-p); font: inherit; font-size: 12px; }
+.delegation-filter-field input:focus, .delegation-filter-field select:focus { border-color: var(--primary); outline: 2px solid rgba(0,107,91,.12); }
+.delegation-filter-details { display: flex; align-items: end; gap: 10px; }
+.delegation-filter-details[hidden] { display: none !important; }
+.delegation-filter-actions { display: flex; align-items: center; gap: 9px; min-height: 39px; }
+.delegation-filter-actions button { height: 39px; padding: 0 13px; border: 0; border-radius: var(--radius-sm); background: var(--primary); color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.delegation-filter-actions a { color: var(--text-s); font-size: 12px; font-weight: 800; }
 
 @media (max-width: 1050px) {
   .delegations-admin-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -82,6 +120,7 @@
   .delegations-admin-summary article { min-height: 70px; padding: 12px; }
   .delegations-admin-summary .summary-icon { flex-basis: 36px; width: 36px; height: 36px; }
   .delegations-admin-form { grid-template-columns: 1fr; }
+  .delegations-admin-form .delegation-position-field { grid-column: auto; }
   .delegations-admin-form-footer { align-items: stretch; flex-direction: column; }
   .delegations-admin-form-actions { justify-content: stretch; }
   .delegations-admin-form-actions .btn { flex: 1; justify-content: center; }
@@ -92,6 +131,9 @@
   .delegations-admin-table td { display: grid; grid-template-columns: 105px minmax(0,1fr); gap: 12px; padding: 6px 0; border: 0; }
   .delegations-admin-table td::before { content: attr(data-label); color: var(--text-m); font-size: 9px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
   .delegations-admin-row-actions { justify-content: flex-start; }
+  .delegation-filter-form, .delegation-filter-details { display: grid; grid-template-columns: 1fr; }
+  .delegation-filter-field { min-width: 0; }
+  .delegation-filter-actions { justify-content: space-between; }
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

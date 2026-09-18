@@ -7,10 +7,19 @@ requireDelegationsModule();
 
 $pageTitle = 'Tabla de delegaciones';
 $base = baseUrl();
-$delegations = getPublicDelegations();
+$filters = delegationPublicFilterOptions($_GET);
+$delegations = filterPublicDelegations(getPublicDelegations(), $filters);
 $interimDelegations = array_values(array_filter($delegations, fn(array $row): bool => $row['delegation_type'] === 'interim'));
 $fixedDelegations = array_values(array_filter($delegations, fn(array $row): bool => $row['delegation_type'] === 'fixed'));
 $completedDelegations = array_values(array_filter($fixedDelegations, 'delegationIsCompleted'));
+$periodLabel = match ($filters['period']) {
+    'month' => delegationMonthLabel($filters['month']),
+    'year' => 'Año ' . $filters['year'],
+    'semester' => ($filters['semester'] === '2' ? 'Segundo' : 'Primer') . ' semestre de ' . $filters['year'],
+    'range' => 'Rango de fechas',
+    default => 'Todos los períodos',
+};
+$expandResults = $_GET !== [];
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -28,8 +37,12 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
   </section>
 
+  <?php $filterContext = 'public'; require __DIR__ . '/../includes/delegation-filter-form.php'; ?>
+
+  <p class="delegations-period-note">Período mostrado: <strong><?= e($periodLabel) ?></strong>. Haz clic en cada sección para consultar sus registros.</p>
+
   <div class="delegations-summary" aria-label="Resumen de delegaciones">
-    <div><strong><?= count($delegations) ?></strong><span>Delegaciones publicadas</span></div>
+    <div><strong><?= count($delegations) ?></strong><span>Delegaciones encontradas</span></div>
     <div><strong><?= count($interimDelegations) ?></strong><span>Hasta proveer el cargo</span></div>
     <div class="<?= $completedDelegations ? 'has-completed' : '' ?>"><strong><?= count($completedDelegations) ?></strong><span>Delegaciones culminadas</span></div>
   </div>
@@ -41,49 +54,53 @@ require_once __DIR__ . '/../includes/header.php';
   ];
   foreach ($publicTables as $table):
   ?>
-  <section class="delegations-table-card tone-<?= e($table['tone']) ?>">
-    <header>
+  <details class="delegations-table-card tone-<?= e($table['tone']) ?>" <?= $expandResults && $table['rows'] ? 'open' : '' ?>>
+    <summary>
       <span class="delegations-table-icon"><?= icon($table['tone'] === 'fixed' ? 'calendar' : 'refresh-cw', '', 19) ?></span>
-      <div>
+      <div class="delegations-table-heading">
         <h2><?= e($table['title']) ?></h2>
         <p><?= e($table['subtitle']) ?></p>
       </div>
-    </header>
+      <span class="delegations-table-meta"><strong><?= count($table['rows']) ?></strong> registro<?= count($table['rows']) === 1 ? '' : 's' ?> · <?= e($periodLabel) ?></span>
+      <span class="delegations-table-chevron" aria-hidden="true"></span>
+    </summary>
 
     <?php if (!$table['rows']): ?>
       <div class="delegations-empty">
         <?= icon('clipboard-check', '', 28) ?>
-        <p>No hay registros publicados en esta tabla.</p>
+        <p>No hay registros que coincidan en esta tabla.</p>
       </div>
     <?php else: ?>
       <div class="delegations-table-scroll">
         <table class="delegations-table">
-          <thead><tr><th>Resolución / RR</th><th>Persona delegada</th><th>Cargo delegado</th><th>Fecha de inicio</th><th>Fecha de fin</th><th>Días</th><th>Estado</th></tr></thead>
+          <thead><tr><th>Tipo de acto</th><th>Resolución / RR</th><th>Persona delegada</th><th>Cargo delegado</th><th>Dependencia</th><th>Fecha de inicio</th><th>Fecha de fin</th><th>Días</th><th>Estado</th></tr></thead>
           <tbody>
           <?php foreach ($table['rows'] as $delegation):
-            $completed = delegationIsCompleted($delegation);
+            $status = delegationStatusCode($delegation);
             $durationDays = delegationDurationDays($delegation);
           ?>
-            <tr class="<?= $completed ? 'delegation-completed' : '' ?>">
+            <tr class="delegation-<?= e($status) ?>">
+              <td data-label="Tipo de acto"><span class="delegations-act-type"><?= e(delegationResolutionType($delegation)) ?></span></td>
               <td data-label="Resolución / RR"><span class="delegations-resolution"><?= e($delegation['resolution_number']) ?></span></td>
-              <td data-label="Persona delegada"><strong><?= e($delegation['delegate_name']) ?></strong></td>
+              <td data-label="Persona delegada"><strong><?= e(delegationDisplayName($delegation)) ?></strong></td>
               <td data-label="Cargo delegado"><?= e($delegation['delegated_position']) ?></td>
+              <td data-label="Dependencia"><?= e(delegationDisplayUnit($delegation) ?: 'No registrada') ?></td>
               <td data-label="Fecha de inicio"><time datetime="<?= e($delegation['start_date']) ?>"><?= e(delegationDateLabel($delegation['start_date'])) ?></time></td>
               <td data-label="Fecha de fin"><?= $delegation['end_date'] ? '<time datetime="' . e($delegation['end_date']) . '">' . e(delegationDateLabel($delegation['end_date'])) . '</time>' : '<span class="delegations-open-date">Hasta proveer</span>' ?></td>
               <td data-label="Días"><strong class="delegations-days"><?= $durationDays !== null ? (int)$durationDays : '—' ?></strong></td>
-              <td data-label="Estado"><span class="delegations-state <?= $completed ? 'is-completed' : 'is-current' ?>"><?= e(delegationStatusLabel($delegation)) ?></span></td>
+              <td data-label="Estado"><span class="delegations-state is-<?= e($status) ?>"><?= e(delegationStatusLabel($delegation)) ?></span></td>
             </tr>
           <?php endforeach; ?>
           </tbody>
         </table>
       </div>
     <?php endif; ?>
-  </section>
+  </details>
   <?php endforeach; ?>
 
   <aside class="delegations-note">
     <?= icon('shield-check', '', 18) ?>
-    <p>La información publicada corresponde a los registros administrados por Talento Humano. Los registros en rojo ya alcanzaron su fecha de finalización.</p>
+    <p>Los filtros públicos muestran las delegaciones cuyo período coincide con la consulta, incluso si comenzaron antes. En amarillo se muestran las que culminan hoy; en rojo, las que culminaron antes de hoy.</p>
   </aside>
 </main>
 

@@ -32,18 +32,22 @@ function defaultDelegationsData(): array {
 }
 
 function normalizeDelegationsData(array $data): array {
-    $records = array_values(array_filter((array)($data['delegations'] ?? []), 'is_array'));
-    $highestId = 0;
-    foreach ($records as &$record) {
-        $record['id'] = max(0, (int)($record['id'] ?? 0));
-        $record['is_active'] = !empty($record['is_active']) ? 1 : 0;
-        $highestId = max($highestId, $record['id']);
+    if (!isset($data['delegations']) || !is_array($data['delegations'])) {
+        throw new RuntimeException('El archivo de delegaciones no contiene una lista válida.');
     }
-    unset($record);
-    return [
-        'next_id' => max($highestId + 1, (int)($data['next_id'] ?? 1)),
-        'delegations' => $records,
-    ];
+    $records = array_values($data['delegations']);
+    $highestId = 0;
+    foreach ($records as $record) {
+        if (!is_array($record)) {
+            throw new RuntimeException('El archivo de delegaciones contiene un registro inválido.');
+        }
+        $highestId = max($highestId, max(0, (int)($record['id'] ?? 0)));
+    }
+    // Los registros publicados con la estructura anterior se leen tal como están.
+    // Los campos nuevos se resuelven en la vista, sin migrar ni reescribir el historial.
+    $data['next_id'] = max($highestId + 1, (int)($data['next_id'] ?? 1));
+    $data['delegations'] = $records;
+    return $data;
 }
 
 function ensureDelegationsDataFile(): void {
@@ -137,6 +141,47 @@ function delegationTypeLabel(string $type): string {
     return $type === 'fixed' ? 'Fecha fija' : 'Hasta proveer el cargo';
 }
 
+function delegationPositionCatalog(): array {
+    // Cargo en masculino => dependencia institucional corregida y acentuada.
+    return [
+        'SUBDIRECTOR DE CONTABILIDAD' => 'SUBDIRECCIÓN DE CONTABILIDAD',
+        'PROFESOR PROVISIONAL EN COMISIÓN DE CARGO POR PERÍODO FIJO, DENOMINADO DIRECTOR DE LA ESCUELA DE CIENCIAS DEL LENGUAJE' => 'ESCUELA DE CIENCIAS DEL LENGUAJE',
+        'PROFESOR PROVISIONAL EN COMISIÓN DE CARGO POR PERÍODO FIJO, DENOMINADO LÍDER DE DEPARTAMENTO' => 'DEPARTAMENTO DE CIENCIAS BÁSICAS TRANSVERSALES',
+        'JEFE DE OFICINA DE TALENTO HUMANO' => 'OFICINA DE TALENTO HUMANO',
+        'VICERRECTOR DE PROYECCIÓN SOCIAL' => 'VICERRECTORÍA DE PROYECCIÓN SOCIAL',
+        'JEFE DE OFICINA DE GESTIÓN DOCUMENTAL' => 'OFICINA DE GESTIÓN DOCUMENTAL',
+        'JEFE DE OFICINA DE ASEGURAMIENTO DE LA CALIDAD Y ACREDITACIÓN' => 'OFICINA DE ASEGURAMIENTO DE LA CALIDAD Y ACREDITACIÓN',
+        'JEFE DE OFICINA DE PROYECTOS ESPECIALES Y RELACIONES INTERINSTITUCIONALES' => 'OFICINA DE PROYECTOS ESPECIALES Y RELACIONES INTERINSTITUCIONALES',
+        'JEFE DE OFICINA DE CONTROL INTERNO Y GESTIÓN' => 'OFICINA DE CONTROL INTERNO Y DE GESTIÓN',
+        'JEFE DE OFICINA DE ATENCIÓN AL CIUDADANO' => 'OFICINA DE ATENCIÓN AL CIUDADANO',
+        'RECTOR' => 'RECTORÍA',
+        'VICERRECTOR ADMINISTRATIVO Y FINANCIERO' => 'VICERRECTORÍA ADMINISTRATIVA Y FINANCIERA',
+        'JEFE DE OFICINA DE BIENESTAR UNIVERSITARIO' => 'OFICINA DE BIENESTAR UNIVERSITARIO',
+        'PROFESOR PROVISIONAL EN COMISIÓN DE CARGO POR PERÍODO FIJO, DENOMINADO VICERRECTOR ACADÉMICO' => 'VICERRECTORÍA ACADÉMICA',
+        'SUBDIRECTOR DE FOMENTO DE LA INVESTIGACIÓN' => 'VICERRECTORÍA DE INVESTIGACIÓN',
+        'DIRECTOR DE LA ESCUELA DE CIENCIAS HUMANAS' => 'ESCUELA DE CIENCIAS HUMANAS',
+        'SECRETARIO GENERAL' => 'SECRETARÍA GENERAL',
+        'VICERRECTOR DE INVESTIGACIONES' => 'VICERRECTORÍA DE INVESTIGACIÓN',
+        'JEFE DE OFICINA DE CONTROL INTERNO DISCIPLINARIO' => 'OFICINA DE CONTROL INTERNO DISCIPLINARIO',
+        'JEFE DE OFICINA DE ADMISIONES Y REGISTRO' => 'OFICINA DE ADMISIONES Y REGISTRO',
+    ];
+}
+
+function delegationDisplayUnit(array $delegation): string {
+    $stored = trim((string)($delegation['delegated_unit'] ?? ''));
+    if ($stored !== '') return $stored;
+    return delegationPositionCatalog()[(string)($delegation['delegated_position'] ?? '')] ?? '';
+}
+
+function delegationResolutionType(array $delegation): string {
+    $type = trim((string)($delegation['resolution_type'] ?? ''));
+    return $type !== '' ? $type : 'Resolución rectoral N.º';
+}
+
+function delegationDisplayName(array $delegation): string {
+    return mb_strtoupper(trim((string)($delegation['delegate_name'] ?? '')), 'UTF-8');
+}
+
 function delegationPeriodLabel(array $delegation): string {
     if (($delegation['delegation_type'] ?? '') === 'interim') {
         return 'Desde ' . delegationDateLabel($delegation['start_date'] ?? null) . ' hasta proveer el cargo';
@@ -154,17 +199,32 @@ function delegationDurationDays(array $delegation): ?int {
     return $start->diff($end)->days + 1;
 }
 
-function delegationIsCompleted(array $delegation, ?string $today = null): bool {
-    if (($delegation['delegation_type'] ?? '') !== 'fixed') return false;
-    $endDate = (string)($delegation['end_date'] ?? '');
-    if (!delegationValidDate($endDate)) return false;
-    $today = $today !== null && delegationValidDate($today) ? $today : date('Y-m-d');
-    return $endDate <= $today;
+function delegationToday(): string {
+    return (new DateTimeImmutable('now', new DateTimeZone('America/Bogota')))->format('Y-m-d');
 }
 
-function delegationStatusLabel(array $delegation): string {
-    if (empty($delegation['is_active'])) return 'Oculta';
-    return delegationIsCompleted($delegation) ? 'Culminada' : 'Vigente';
+function delegationStatusCode(array $delegation, ?string $today = null): string {
+    if (empty($delegation['is_active'])) return 'hidden';
+    if (($delegation['delegation_type'] ?? '') !== 'fixed') return 'active';
+    $endDate = (string)($delegation['end_date'] ?? '');
+    if (!delegationValidDate($endDate)) return 'active';
+    $today = $today !== null && delegationValidDate($today) ? $today : delegationToday();
+    if ($endDate < $today) return 'completed';
+    if ($endDate === $today) return 'ending';
+    return 'active';
+}
+
+function delegationIsCompleted(array $delegation, ?string $today = null): bool {
+    return delegationStatusCode($delegation, $today) === 'completed';
+}
+
+function delegationStatusLabel(array $delegation, ?string $today = null): string {
+    return match (delegationStatusCode($delegation, $today)) {
+        'hidden' => 'Oculta',
+        'completed' => 'Delegación culminada',
+        'ending' => 'Delegación próxima a culminar',
+        default => 'Vigente',
+    };
 }
 
 function delegationValidDate(string $date): bool {
@@ -172,19 +232,29 @@ function delegationValidDate(string $date): bool {
     return $parsed !== false && $parsed->format('Y-m-d') === $date;
 }
 
-function validateDelegationInput(array $input): array {
+function validateDelegationInput(array $input, ?array $existing = null, bool $allowHistoricalPosition = false): array {
     $type = strtolower(trim((string)($input['delegation_type'] ?? '')));
+    $resolutionType = trim((string)($input['resolution_type'] ?? 'Resolución rectoral N.º'));
     $resolution = trim((string)($input['resolution_number'] ?? ''));
-    $name = trim((string)($input['delegate_name'] ?? ''));
+    $name = mb_strtoupper(trim((string)($input['delegate_name'] ?? '')), 'UTF-8');
     $position = trim((string)($input['delegated_position'] ?? ''));
+    $catalog = delegationPositionCatalog();
+    $legacyPosition = $existing !== null && $position === (string)($existing['delegated_position'] ?? '');
+    $unit = $catalog[$position] ?? ($legacyPosition ? delegationDisplayUnit($existing) : ($allowHistoricalPosition ? mb_strtoupper(trim((string)($input['delegated_unit'] ?? '')), 'UTF-8') : ''));
     $startDate = trim((string)($input['start_date'] ?? ''));
     $endDate = trim((string)($input['end_date'] ?? ''));
     $errors = [];
 
     if (!in_array($type, ['interim', 'fixed'], true)) $errors[] = 'Selecciona un tipo de delegación válido.';
+    if ($resolutionType === '' || mb_strlen($resolutionType) > 100) $errors[] = 'El tipo de acto es obligatorio y debe tener máximo 100 caracteres.';
     if ($resolution === '' || mb_strlen($resolution) > 80) $errors[] = 'El número de resolución es obligatorio y debe tener máximo 80 caracteres.';
     if ($name === '' || mb_strlen($name) > 160) $errors[] = 'El nombre del delegado es obligatorio y debe tener máximo 160 caracteres.';
-    if ($position === '' || mb_strlen($position) > 200) $errors[] = 'El cargo delegado es obligatorio y debe tener máximo 200 caracteres.';
+    if ($position === '' || mb_strlen($position) > 200 || (!isset($catalog[$position]) && !$legacyPosition && !$allowHistoricalPosition)) {
+        $errors[] = 'Selecciona un cargo delegado de la lista.';
+    }
+    if ($allowHistoricalPosition && !isset($catalog[$position]) && ($unit === '' || mb_strlen($unit) > 200)) {
+        $errors[] = 'Indica la dependencia del cargo histórico (máximo 200 caracteres).';
+    }
     if (!delegationValidDate($startDate)) $errors[] = 'Indica una fecha inicial válida.';
     if ($type === 'fixed') {
         if (!delegationValidDate($endDate)) {
@@ -200,14 +270,95 @@ function validateDelegationInput(array $input): array {
         'errors' => $errors,
         'data' => [
             'delegation_type' => $type,
+            'resolution_type' => $resolutionType,
             'resolution_number' => $resolution,
             'delegate_name' => $name,
             'delegated_position' => $position,
+            'delegated_unit' => $unit,
             'start_date' => $startDate,
             'end_date' => $endDate !== '' ? $endDate : null,
             'is_active' => isset($input['is_active']) ? 1 : 0,
         ],
     ];
+}
+
+function delegationFilterOptions(array $input): array {
+    $search = trim((string)($input['q'] ?? ''));
+    $period = (string)($input['period'] ?? 'all');
+    if (!in_array($period, ['all', 'range', 'month', 'semester', 'year'], true)) $period = 'all';
+    $year = trim((string)($input['year'] ?? ''));
+    $month = trim((string)($input['month'] ?? ''));
+    $semester = (string)($input['semester'] ?? '1');
+    $from = trim((string)($input['from'] ?? ''));
+    $to = trim((string)($input['to'] ?? ''));
+    $start = null;
+    $end = null;
+
+    if ($period === 'range') {
+        $start = delegationValidDate($from) ? $from : null;
+        $end = delegationValidDate($to) ? $to : null;
+        if ($start === null && $end === null) $period = 'all';
+    } elseif ($period === 'month' && preg_match('/\A\d{4}-(0[1-9]|1[0-2])\z/', $month)) {
+        [$start, $end] = delegationMonthBounds($month);
+    } elseif (($period === 'year' || $period === 'semester') && preg_match('/\A\d{4}\z/', $year)) {
+        $start = $year . ($period === 'semester' && $semester === '2' ? '-07-01' : '-01-01');
+        $end = $year . ($period === 'semester' && $semester !== '2' ? '-06-30' : '-12-31');
+    } else {
+        $period = 'all';
+    }
+
+    return [
+        'q' => mb_substr($search, 0, 160), 'period' => $period,
+        'year' => $year, 'month' => $month, 'semester' => $semester,
+        'from' => $from, 'to' => $to, 'start' => $start, 'end' => $end,
+    ];
+}
+
+function delegationPublicFilterOptions(array $input, ?string $today = null): array {
+    if (!array_key_exists('period', $input)) {
+        $today = $today !== null && delegationValidDate($today) ? $today : delegationToday();
+        $input['period'] = 'month';
+        $input['month'] = substr($today, 0, 7);
+    }
+    return delegationFilterOptions($input);
+}
+
+function filterDelegations(array $records, array $filters): array {
+    $query = delegationSearchKey($filters['q'] ?? '');
+    $start = $filters['start'] ?? null;
+    $end = $filters['end'] ?? null;
+    return array_values(array_filter($records, static function (array $row) use ($query, $start, $end): bool {
+        $date = (string)($row['start_date'] ?? '');
+        if ($start !== null && $date < $start) return false;
+        if ($end !== null && $date > $end) return false;
+        if ($query === '') return true;
+        $haystack = delegationSearchKey((string)($row['resolution_number'] ?? '') . ' ' . (string)($row['delegate_name'] ?? ''));
+        return mb_strpos($haystack, $query, 0, 'UTF-8') !== false;
+    }));
+}
+
+function filterPublicDelegations(array $records, array $filters): array {
+    // La consulta pública muestra delegaciones que estuvieron vigentes durante
+    // el período, aunque hayan comenzado en un mes anterior.
+    $searchOnly = $filters;
+    $searchOnly['start'] = null;
+    $searchOnly['end'] = null;
+    $matched = filterDelegations($records, $searchOnly);
+    $periodStart = $filters['start'] ?? null;
+    $periodEnd = $filters['end'] ?? null;
+    if ($periodStart === null && $periodEnd === null) return $matched;
+    return array_values(array_filter($matched, static function (array $record) use ($periodStart, $periodEnd): bool {
+        $startDate = (string)($record['start_date'] ?? '');
+        $endDate = (string)($record['end_date'] ?? '');
+        if (!delegationValidDate($startDate)) return false;
+        if ($periodEnd !== null && $startDate > $periodEnd) return false;
+        return $periodStart === null || !delegationValidDate($endDate) || $endDate >= $periodStart;
+    }));
+}
+
+function delegationSearchKey(string $text): string {
+    $text = mb_strtolower(trim($text), 'UTF-8');
+    return strtr($text, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u']);
 }
 
 function delegationOverlapsMonth(array $delegation, string $month): bool {
@@ -277,7 +428,7 @@ function saveDelegationRecord(array $record, ?int $id, string $admin): int {
                 if ((int)$existing['id'] !== $id) continue;
                 $createdAt = $existing['created_at'] ?? $now;
                 $createdBy = $existing['created_by'] ?? $admin;
-                $existing = array_merge($record, [
+                $existing = array_merge($existing, $record, [
                     'id' => $id,
                     'created_by' => $createdBy,
                     'created_at' => $createdAt,
@@ -299,6 +450,48 @@ function saveDelegationRecord(array $record, ?int $id, string $admin): int {
             'updated_at' => $now,
         ]);
         return $newId;
+    });
+}
+
+function delegationDuplicateKey(array $record): string {
+    return delegationSearchKey(implode('|', [
+        delegationResolutionType($record),
+        trim((string)($record['resolution_number'] ?? '')),
+        trim((string)($record['delegate_name'] ?? '')),
+        trim((string)($record['start_date'] ?? '')),
+    ]));
+}
+
+function appendDelegationRecords(array &$data, array $records, string $admin): array {
+    $known = [];
+    foreach ($data['delegations'] as $existing) $known[delegationDuplicateKey($existing)] = true;
+    $added = 0;
+    $skipped = 0;
+    $now = date(DATE_ATOM);
+    foreach ($records as $record) {
+        $key = delegationDuplicateKey($record);
+        if (isset($known[$key])) {
+            $skipped++;
+            continue;
+        }
+        $known[$key] = true;
+        $newId = max(1, (int)$data['next_id']);
+        $data['next_id'] = $newId + 1;
+        $data['delegations'][] = array_merge($record, [
+            'id' => $newId,
+            'created_by' => $admin,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        $added++;
+    }
+    return ['added' => $added, 'skipped' => $skipped];
+}
+
+function importDelegationRecords(array $records, string $admin): array {
+    requireDelegationsModule();
+    return updateDelegationsData(function (array &$data) use ($records, $admin): array {
+        return appendDelegationRecords($data, $records, $admin);
     });
 }
 
