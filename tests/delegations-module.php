@@ -9,7 +9,7 @@ function delegationTest(bool $condition, string $message): void {
 delegationTest(delegationsModuleEnabled(), 'El módulo local debe estar habilitado.');
 delegationTest(delegationsStorageReady(), 'El archivo JSON debe estar disponible.');
 delegationTest(delegationMonthBounds('2026-02') === ['2026-02-01', '2026-02-28'], 'Límites mensuales incorrectos.');
-$catalog = delegationPositionCatalog();
+$catalog = delegationDefaultPositionCatalog();
 delegationTest(count($catalog) === 20, 'Deben estar disponibles los 20 cargos proporcionados.');
 delegationTest($catalog['SUBDIRECTOR DE CONTABILIDAD'] === 'SUBDIRECCIÓN DE CONTABILIDAD', 'La primera dependencia no coincide.');
 delegationTest($catalog['VICERRECTOR DE INVESTIGACIONES'] === 'VICERRECTORÍA DE INVESTIGACIÓN', 'El cargo de investigaciones debe estar en masculino.');
@@ -29,8 +29,9 @@ $invalid = validateDelegationInput([
 ]);
 delegationTest(count($invalid['errors']) === 1, 'Debe rechazarse una fecha final anterior a la inicial.');
 
-$september = getPublicDelegationsForMonth('2026-09');
-$october = getPublicDelegationsForMonth('2026-10');
+$fixture = decodeJsonFile(DELEGATIONS_TEMPLATE_FILE)['delegations'];
+$september = array_values(array_filter($fixture, fn(array $row): bool => !empty($row['is_active']) && delegationOverlapsMonth($row, '2026-09')));
+$october = array_values(array_filter($fixture, fn(array $row): bool => !empty($row['is_active']) && delegationOverlapsMonth($row, '2026-10')));
 $septemberResolutions = array_column($september, 'resolution_number');
 $octoberResolutions = array_column($october, 'resolution_number');
 delegationTest(in_array('1393', $septemberResolutions, true), 'La delegación abierta debe aparecer en septiembre.');

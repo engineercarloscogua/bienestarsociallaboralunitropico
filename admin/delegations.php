@@ -10,6 +10,8 @@ $base = baseUrl();
 $notice = trim((string)($_GET['notice'] ?? ''));
 $errors = [];
 $formData = null;
+$catalogFormData = ['position_name' => '', 'position_unit' => ''];
+$catalogPanelOpen = isset($_GET['catalog']);
 $importPreview = $_SESSION['delegation_import_preview'] ?? null;
 if (is_array($importPreview) && time() - (int)($importPreview['created_at'] ?? 0) > 1800) {
     unset($_SESSION['delegation_import_preview']);
@@ -17,6 +19,30 @@ if (is_array($importPreview) && time() - (int)($importPreview['created_at'] ?? 0
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['add_position'])) {
+        $catalogPanelOpen = true;
+        $catalogFormData = validateDelegationCatalogEntry($_POST);
+        $errors = $catalogFormData['errors'];
+        if (!$errors) {
+            try {
+                addDelegationCatalogEntry($catalogFormData['position'], $catalogFormData['unit']);
+                redirect($base . '/admin/delegations.php?catalog=1&notice=position-created#delegation-catalog-card');
+            } catch (Throwable $error) {
+                $errors[] = $error->getMessage();
+            }
+        }
+    }
+
+    if (isset($_POST['delete_position'])) {
+        $catalogPanelOpen = true;
+        try {
+            $deleted = deleteDelegationCatalogEntry((string)($_POST['position_name'] ?? ''));
+            redirect($base . '/admin/delegations.php?catalog=1&notice=' . ($deleted ? 'position-deleted' : 'position-not-found') . '#delegation-catalog-card');
+        } catch (Throwable $error) {
+            $errors[] = 'No fue posible quitar el cargo del catálogo.';
+        }
+    }
+
     if (isset($_POST['cancel_delegation_import'])) {
         unset($_SESSION['delegation_import_preview']);
         redirect($base . '/admin/delegations.php#delegation-import-card');
@@ -120,6 +146,9 @@ $noticeMessages = [
     'deleted' => ['success', 'Delegación eliminada.'],
     'not-found' => ['error', 'No se encontró la delegación solicitada.'],
     'imported' => ['success', 'Importación terminada: ' . max(0, (int)($_GET['added'] ?? 0)) . ' agregadas y ' . max(0, (int)($_GET['skipped'] ?? 0)) . ' duplicadas omitidas.'],
+    'position-created' => ['success', 'Cargo y dependencia agregados al catálogo.'],
+    'position-deleted' => ['success', 'Cargo retirado de las opciones. Las delegaciones existentes no se modificaron.'],
+    'position-not-found' => ['error', 'Ese cargo ya no está en el catálogo.'],
 ];
 $alert = $noticeMessages[$notice] ?? null;
 ?>
@@ -206,6 +235,34 @@ $alert = $noticeMessages[$notice] ?? null;
           </div>
         </section>
 
+        <details class="widget delegations-catalog-card" id="delegation-catalog-card" <?= $catalogPanelOpen ? 'open' : '' ?>>
+          <summary class="delegations-catalog-summary">
+            <span><strong>Catálogo de cargos y dependencias</strong><small>Agrega opciones para el formulario de delegaciones.</small></span>
+            <span class="delegations-catalog-count"><?= count($positionCatalog) ?> cargos</span>
+          </summary>
+          <div class="delegations-catalog-content">
+            <form method="post" class="delegations-catalog-form">
+              <?= csrfField() ?>
+              <div class="form-field"><label class="form-label" for="position-name">Cargo delegado</label><input class="form-input delegations-uppercase" id="position-name" name="position_name" maxlength="200" required value="<?= e((string)($catalogFormData['position'] ?? $catalogFormData['position_name'] ?? '')) ?>" placeholder="Ej. DIRECTOR DE ESCUELA"></div>
+              <div class="form-field"><label class="form-label" for="position-unit">Dependencia</label><input class="form-input delegations-uppercase" id="position-unit" name="position_unit" maxlength="200" required value="<?= e((string)($catalogFormData['unit'] ?? $catalogFormData['position_unit'] ?? '')) ?>" placeholder="Ej. ESCUELA DE CIENCIAS"></div>
+              <button class="btn btn-primary" type="submit" name="add_position"><?= icon('plus','',14) ?> Agregar cargo</button>
+            </form>
+            <p class="delegations-catalog-help">Quitar un cargo solo lo elimina de esta lista. Las delegaciones ya registradas conservan sus datos.</p>
+            <div class="delegations-catalog-list" role="list" aria-label="Cargos disponibles">
+              <?php foreach ($positionCatalog as $position => $unit): ?>
+                <div class="delegations-catalog-row" role="listitem">
+                  <div><strong><?= e($position) ?></strong><span><?= e($unit) ?></span></div>
+                  <form method="post" onsubmit="return confirm('¿Quitar este cargo de las opciones? Las delegaciones existentes no se borrarán.');">
+                    <?= csrfField() ?><input type="hidden" name="position_name" value="<?= e($position) ?>">
+                    <button class="btn btn-danger btn-sm" type="submit" name="delete_position"><?= icon('trash','',13) ?> Quitar</button>
+                  </form>
+                </div>
+              <?php endforeach; ?>
+              <?php if (!$positionCatalog): ?><p class="admin-empty">Aún no hay cargos disponibles. Agrega el primero arriba.</p><?php endif; ?>
+            </div>
+          </div>
+        </details>
+
         <section class="widget delegations-admin-form-card" id="delegation-form-card">
           <div class="widget-header"><div><h3 class="widget-title"><?= icon((int)$formData['id'] > 0 ? 'edit' : 'plus','',16) ?> <?= (int)$formData['id'] > 0 ? 'Editar delegación' : 'Nueva delegación' ?></h3><p>Registra únicamente actos administrativos confirmados.</p></div></div>
           <form method="post" class="delegations-admin-form" id="delegation-form">
@@ -232,6 +289,7 @@ $alert = $noticeMessages[$notice] ?? null;
                   <option value="<?= e($position) ?>" data-unit="<?= e($unit) ?>" <?= $selectedPosition === $position ? 'selected' : '' ?>><?= e($position) ?></option>
                 <?php endforeach; ?>
               </select>
+              <small>¿Falta un cargo? <a href="#delegation-catalog-card" onclick="document.getElementById('delegation-catalog-card').open=true">Agrégalo al catálogo</a>.</small>
             </div>
             <div class="form-field"><label class="form-label" for="delegation-unit">Dependencia</label><input class="form-input" id="delegation-unit" value="<?= e(delegationDisplayUnit($formData)) ?>" placeholder="Se completa con el cargo" readonly><small>Se asigna automáticamente.</small></div>
             <div class="form-field"><label class="form-label" for="delegation-start">Fecha inicial</label><input class="form-input" id="delegation-start" type="date" name="start_date" required value="<?= e($formData['start_date']) ?>"></div>

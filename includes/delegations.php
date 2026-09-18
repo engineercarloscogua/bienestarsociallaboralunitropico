@@ -43,6 +43,7 @@ function normalizeDelegationsData(array $data): array {
         }
         $highestId = max($highestId, max(0, (int)($record['id'] ?? 0)));
     }
+    delegationPositionCatalogFromData($data);
     // Los registros publicados con la estructura anterior se leen tal como están.
     // Los campos nuevos se resuelven en la vista, sin migrar ni reescribir el historial.
     $data['next_id'] = max($highestId + 1, (int)($data['next_id'] ?? 1));
@@ -141,7 +142,7 @@ function delegationTypeLabel(string $type): string {
     return $type === 'fixed' ? 'Fecha fija' : 'Hasta proveer el cargo';
 }
 
-function delegationPositionCatalog(): array {
+function delegationDefaultPositionCatalog(): array {
     // Cargo en masculino => dependencia institucional corregida y acentuada.
     return [
         'SUBDIRECTOR DE CONTABILIDAD' => 'SUBDIRECCIÓN DE CONTABILIDAD',
@@ -167,10 +168,84 @@ function delegationPositionCatalog(): array {
     ];
 }
 
+function delegationPositionCatalogFromData(array $data): array {
+    if (!array_key_exists('position_catalog', $data)) return delegationDefaultPositionCatalog();
+    $catalog = $data['position_catalog'];
+    if (!is_array($catalog)) throw new RuntimeException('El catálogo de cargos no es válido.');
+    foreach ($catalog as $position => $unit) {
+        if (!is_string($position) || $position === '' || !is_string($unit) || $unit === '') {
+            throw new RuntimeException('El catálogo de cargos contiene una entrada inválida.');
+        }
+    }
+    return $catalog;
+}
+
+function delegationPositionCatalog(): array {
+    return delegationPositionCatalogFromData(readDelegationsData());
+}
+
+function delegationCatalogText(string $text): string {
+    return mb_strtoupper(trim((string)preg_replace('/[\s\x{00A0}]+/u', ' ', $text)), 'UTF-8');
+}
+
+function validateDelegationCatalogEntry(array $input): array {
+    $position = delegationCatalogText((string)($input['position_name'] ?? ''));
+    $unit = delegationCatalogText((string)($input['position_unit'] ?? ''));
+    $errors = [];
+    if ($position === '' || mb_strlen($position, 'UTF-8') > 200) {
+        $errors[] = 'Indica un cargo de máximo 200 caracteres.';
+    }
+    if ($unit === '' || mb_strlen($unit, 'UTF-8') > 200) {
+        $errors[] = 'Indica una dependencia de máximo 200 caracteres.';
+    }
+    return ['errors' => $errors, 'position' => $position, 'unit' => $unit];
+}
+
+function appendDelegationCatalogEntry(array &$data, string $position, string $unit): void {
+    $catalog = delegationPositionCatalogFromData($data);
+    $search = delegationSearchKey($position);
+    foreach ($catalog as $existing => $_) {
+        if (delegationSearchKey($existing) === $search) {
+            throw new RuntimeException('Ese cargo ya existe en el catálogo.');
+        }
+    }
+    $catalog[$position] = $unit;
+    $data['position_catalog'] = $catalog;
+}
+
+function removeDelegationCatalogEntry(array &$data, string $position): bool {
+    $catalog = delegationPositionCatalogFromData($data);
+    if (!array_key_exists($position, $catalog)) return false;
+    unset($catalog[$position]);
+    $data['position_catalog'] = $catalog;
+    return true;
+}
+
+function addDelegationCatalogEntry(string $position, string $unit): void {
+    requireDelegationsModule();
+    $validated = validateDelegationCatalogEntry(['position_name' => $position, 'position_unit' => $unit]);
+    if ($validated['errors']) throw new InvalidArgumentException(implode(' ', $validated['errors']));
+    $position = $validated['position'];
+    $unit = $validated['unit'];
+    updateDelegationsData(function (array &$data) use ($position, $unit): void {
+        appendDelegationCatalogEntry($data, $position, $unit);
+    });
+}
+
+function deleteDelegationCatalogEntry(string $position): bool {
+    requireDelegationsModule();
+    return updateDelegationsData(function (array &$data) use ($position): bool {
+        return removeDelegationCatalogEntry($data, $position);
+    });
+}
+
 function delegationDisplayUnit(array $delegation): string {
     $stored = trim((string)($delegation['delegated_unit'] ?? ''));
     if ($stored !== '') return $stored;
-    return delegationPositionCatalog()[(string)($delegation['delegated_position'] ?? '')] ?? '';
+    $position = (string)($delegation['delegated_position'] ?? '');
+    // Los registros anteriores sin dependencia conservan su valor histórico
+    // aunque el cargo se retire de las opciones para registros nuevos.
+    return delegationDefaultPositionCatalog()[$position] ?? delegationPositionCatalog()[$position] ?? '';
 }
 
 function delegationResolutionType(array $delegation): string {
@@ -240,7 +315,9 @@ function validateDelegationInput(array $input, ?array $existing = null, bool $al
     $position = trim((string)($input['delegated_position'] ?? ''));
     $catalog = delegationPositionCatalog();
     $legacyPosition = $existing !== null && $position === (string)($existing['delegated_position'] ?? '');
-    $unit = $catalog[$position] ?? ($legacyPosition ? delegationDisplayUnit($existing) : ($allowHistoricalPosition ? mb_strtoupper(trim((string)($input['delegated_unit'] ?? '')), 'UTF-8') : ''));
+    $unit = $legacyPosition
+        ? delegationDisplayUnit($existing)
+        : ($catalog[$position] ?? ($allowHistoricalPosition ? mb_strtoupper(trim((string)($input['delegated_unit'] ?? '')), 'UTF-8') : ''));
     $startDate = trim((string)($input['start_date'] ?? ''));
     $endDate = trim((string)($input['end_date'] ?? ''));
     $errors = [];
