@@ -4,10 +4,16 @@
 // ============================================================
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/delegations.php';
+require_once __DIR__ . '/includes/hero-carousel.php';
 
 $pageTitle   = 'Inicio';
-$heroTitle   = getConfig('hero_title',    'Bienvenidos a Bienestar Social Laboral');
+$heroTitle   = getConfig('hero_title',    'Bienvenidos al Portal de Bienestar Social Laboral');
+if ($heroTitle === 'Bienvenidos a Bienestar Social Laboral') {
+  $heroTitle = 'Bienvenidos al Portal de Bienestar Social Laboral';
+}
 $heroSub     = getConfig('hero_subtitle', 'Impulsamos tu bienestar y crecimiento profesional en Unitrópico');
+$heroSlides  = heroCarouselSlides();
+$heroInterval = heroCarouselInterval();
 $mainCards   = getCards('inicio');
 $allCards    = getAllCards();
 $resourceCount = count(array_filter($allCards, fn($card) => $card['is_active'] ?? true));
@@ -21,8 +27,19 @@ require_once __DIR__ . '/includes/header.php';
 <main class="content">
 
   <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-bg" id="hero-bg"></div>
+  <section class="hero hero-carousel" data-hero-carousel data-interval="<?= (int)$heroInterval ?>" aria-label="Bienvenida al Portal de Bienestar Social Laboral">
+    <div class="hero-slides" aria-hidden="true">
+      <?php foreach ($heroSlides as $slideIndex => $slide): ?>
+      <div class="hero-slide<?= $slideIndex === 0 ? ' is-active' : '' ?>" data-hero-slide data-transition="<?= ['wipe','diagonal','focus'][$slideIndex % 3] ?>">
+        <img
+          src="<?= $base ?>/<?= e($slide['image_url']) ?>"
+          alt=""
+          style="object-position:<?= e($slide['position']) ?>;"
+          <?= $slideIndex === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?>
+        >
+      </div>
+      <?php endforeach; ?>
+    </div>
     <div class="hero-overlay"></div>
     <div class="hero-glow"></div>
     <canvas class="hero-network" id="hero-network" aria-hidden="true"></canvas>
@@ -52,6 +69,29 @@ require_once __DIR__ . '/includes/header.php';
         <?php endif; ?>
       </div>
     </div>
+    <?php if (count($heroSlides) > 1): ?>
+    <div class="hero-carousel-controls" aria-label="Controles del carrusel">
+      <button type="button" class="hero-carousel-arrow hero-carousel-prev" data-hero-prev aria-label="Mostrar imagen anterior">
+        <?= icon('chevron-right', '', 18) ?>
+      </button>
+      <div class="hero-carousel-dots" role="tablist" aria-label="Imágenes del banner">
+        <?php foreach ($heroSlides as $slideIndex => $slide): ?>
+        <button
+          type="button"
+          class="hero-carousel-dot<?= $slideIndex === 0 ? ' is-active' : '' ?>"
+          data-hero-dot="<?= $slideIndex ?>"
+          role="tab"
+          aria-selected="<?= $slideIndex === 0 ? 'true' : 'false' ?>"
+          aria-label="Mostrar imagen <?= $slideIndex + 1 ?>: <?= e($slide['alt']) ?>"
+        ></button>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="hero-carousel-arrow" data-hero-next aria-label="Mostrar imagen siguiente">
+        <?= icon('chevron-right', '', 18) ?>
+      </button>
+    </div>
+    <p class="sr-only" data-hero-status aria-live="polite"></p>
+    <?php endif; ?>
   </section>
 
   <!-- ── STATS ── -->

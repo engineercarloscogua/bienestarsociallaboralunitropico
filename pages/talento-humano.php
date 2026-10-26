@@ -7,6 +7,20 @@ $page      = getPage('talento-humano');
 $cards     = getCards('talento-humano');
 $base      = baseUrl();
 
+// Programa institucional fijo. Se mantiene fuera de la base de datos mientras
+// se construye el módulo definitivo de aplicación de pruebas.
+$cards[] = [
+  'id'          => 'pruebas-psicotecnicas',
+  'title'       => 'Pruebas Psicotécnicas',
+  'description' => 'Conoce el próximo espacio institucional para realizar las pruebas psicotécnicas requeridas antes de la vinculación con Unitrópico.',
+  'icon'        => 'brain',
+  'color'       => '#006b5b',
+  'image_url'   => 'assets/uploads/pruebas-psicotecnicas.png',
+  'link_url'    => 'pages/pruebas-psicotecnicas.php',
+  'link_label'  => 'Conocer más',
+  'is_active'   => true,
+];
+
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
@@ -47,7 +61,7 @@ require_once __DIR__ . '/../includes/header.php';
       $b = hexdec(substr($colHex,5,2));
       $image = !empty($card['image_url']) ? $base . '/' . ltrim($card['image_url'], '/') : '';
     ?>
-    <div class="service-card" tabindex="0" style="--card-color:<?= e($colHex) ?>">
+    <div class="service-card"<?= ($card['id'] ?? '') === 'pruebas-psicotecnicas' ? ' id="pruebas-psicotecnicas-card"' : '' ?> tabindex="0" style="--card-color:<?= e($colHex) ?>">
       <?php if ($image): ?>
       <div class="card-image">
         <img src="<?= e($image) ?>" alt="<?= e($card['title']) ?>" loading="lazy">

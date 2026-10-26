@@ -51,7 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_config'])) {
 }
 
 // Reload config after save
-$heroTitle    = getConfig('hero_title',           'Bienvenidos a Bienestar Social Laboral');
+$heroTitle    = getConfig('hero_title',           'Bienvenidos al Portal de Bienestar Social Laboral');
+if ($heroTitle === 'Bienvenidos a Bienestar Social Laboral') {
+    $heroTitle = 'Bienvenidos al Portal de Bienestar Social Laboral';
+}
 $heroSubtitle = getConfig('hero_subtitle',        'Impulsamos tu bienestar y crecimiento profesional en Unitrópico');
 $siteTitle    = getConfig('site_title',           'Bienestar Social Laboral');
 $siteSub      = getConfig('site_subtitle',        'Bienestar Social Laboral - Oficina de Talento Humano');
@@ -93,6 +96,9 @@ $calId        = getConfig('google_calendar_id',   '');
       </a>
       <a href="<?= $base ?>/admin/media.php" class="admin-nav-item">
         <?= icon('image','',16) ?> Imágenes
+      </a>
+      <a href="<?= $base ?>/admin/hero-carousel.php" class="admin-nav-item">
+        <?= icon('image','',16) ?> Banner principal
       </a>
       <?php if (delegationsModuleEnabled()): ?>
       <a href="<?= $base ?>/admin/delegations.php" class="admin-nav-item">
@@ -246,6 +252,9 @@ $calId        = getConfig('google_calendar_id',   '');
           </a>
           <a href="<?= $base ?>/admin/media.php" class="btn btn-outline btn-sm">
             <?= icon('image','',14) ?> Subir Imagen
+          </a>
+          <a href="<?= $base ?>/admin/hero-carousel.php" class="btn btn-outline btn-sm">
+            <?= icon('image','',14) ?> Gestionar Banner
           </a>
           <a href="<?= $base ?>/admin/comments.php" class="btn btn-outline btn-sm">
             <?= icon('heart','',14) ?> Moderar Comentarios

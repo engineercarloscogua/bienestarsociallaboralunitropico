@@ -1,15 +1,557 @@
 document.addEventListener('DOMContentLoaded', () => {
   initAnalytics();
   initHeroNetwork();
+  initHeroCarousel();
   initSidebar();
+  initPortalTools();
+  initActiveBreak();
   initScrollReveal();
   setActiveNav();
   initPageTransitions();
   initSelfcareGames();
-  initTalibriMascot();
   initTurnstileWidgets();
   initCommentForm();
 });
+
+function initHeroCarousel() {
+  const carousel = document.querySelector('[data-hero-carousel]');
+  if (!carousel) return;
+
+  const slides = [...carousel.querySelectorAll('[data-hero-slide]')];
+  const dots = [...carousel.querySelectorAll('[data-hero-dot]')];
+  const previousButton = carousel.querySelector('[data-hero-prev]');
+  const nextButton = carousel.querySelector('[data-hero-next]');
+  const status = carousel.querySelector('[data-hero-status]');
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const interval = Math.max(4000, Number(carousel.dataset.interval) || 6500);
+  if (slides.length < 2) return;
+
+  let current = 0;
+  let timer = null;
+  let pointerStart = null;
+
+  const show = (nextIndex, announce = false) => {
+    const normalized = (nextIndex + slides.length) % slides.length;
+    if (normalized === current) return;
+
+    slides[current].classList.remove('is-active');
+    slides[current].classList.add('is-leaving');
+    dots[current]?.classList.remove('is-active');
+    dots[current]?.setAttribute('aria-selected', 'false');
+
+    current = normalized;
+    slides[current].classList.remove('is-leaving');
+    slides[current].classList.add('is-active');
+    dots[current]?.classList.add('is-active');
+    dots[current]?.setAttribute('aria-selected', 'true');
+
+    window.setTimeout(() => {
+      slides.forEach((slide, index) => {
+        if (index !== current) slide.classList.remove('is-leaving');
+      });
+    }, prefersReducedMotion ? 0 : 1300);
+
+    if (announce && status) status.textContent = `Imagen ${current + 1} de ${slides.length}`;
+  };
+
+  const stop = () => {
+    if (timer) window.clearInterval(timer);
+    timer = null;
+  };
+
+  const start = () => {
+    stop();
+    if (prefersReducedMotion || document.hidden) return;
+    timer = window.setInterval(() => show(current + 1), interval);
+  };
+
+  previousButton?.addEventListener('click', () => {
+    show(current - 1, true);
+    start();
+  });
+  nextButton?.addEventListener('click', () => {
+    show(current + 1, true);
+    start();
+  });
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      show(Number(dot.dataset.heroDot), true);
+      start();
+    });
+  });
+
+  carousel.addEventListener('mouseenter', stop);
+  carousel.addEventListener('mouseleave', start);
+  carousel.addEventListener('focusin', stop);
+  carousel.addEventListener('focusout', (event) => {
+    if (!carousel.contains(event.relatedTarget)) start();
+  });
+  carousel.addEventListener('pointerdown', (event) => {
+    pointerStart = { x: event.clientX, y: event.clientY };
+  }, { passive: true });
+  carousel.addEventListener('pointerup', (event) => {
+    if (!pointerStart) return;
+    const deltaX = event.clientX - pointerStart.x;
+    const deltaY = event.clientY - pointerStart.y;
+    pointerStart = null;
+    if (Math.abs(deltaX) < 55 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+    show(current + (deltaX < 0 ? 1 : -1), true);
+    start();
+  }, { passive: true });
+  document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+
+  start();
+}
+
+function initPortalTools() {
+  const triggers = [...document.querySelectorAll('[data-portal-tool]')];
+  const panels = [...document.querySelectorAll('[data-portal-panel]')];
+  const backdrop = document.querySelector('[data-portal-tool-backdrop]');
+  if (!triggers.length || !panels.length || !backdrop) return;
+
+  let activePanel = null;
+  let returnFocus = null;
+
+  const getFocusable = (panel) => [...panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+
+  function closeTools(restoreFocus = true) {
+    if (!activePanel) return;
+    const closedName = activePanel.dataset.portalPanel;
+    activePanel.hidden = true;
+    backdrop.hidden = true;
+    document.body.classList.remove('portal-tool-open');
+    triggers.forEach((trigger) => trigger.setAttribute('aria-expanded', 'false'));
+    const focusTarget = returnFocus;
+    activePanel = null;
+    returnFocus = null;
+    document.dispatchEvent(new CustomEvent('portal-tool:closed', { detail: { name: closedName } }));
+    if (restoreFocus && focusTarget) focusTarget.focus();
+  }
+
+  function openTool(name, trigger) {
+    const panel = panels.find((item) => item.dataset.portalPanel === name);
+    if (!panel) return;
+    if (activePanel === panel) {
+      closeTools();
+      return;
+    }
+    closeTools(false);
+    activePanel = panel;
+    returnFocus = trigger;
+    panel.hidden = false;
+    backdrop.hidden = false;
+    document.body.classList.add('portal-tool-open');
+    triggers.forEach((item) => item.setAttribute('aria-expanded', String(item === trigger)));
+    document.dispatchEvent(new CustomEvent('portal-tool:opened', { detail: { name } }));
+    window.requestAnimationFrame(() => {
+      const preferred = panel.querySelector('input') || getFocusable(panel)[0];
+      preferred?.focus();
+    });
+  }
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', () => openTool(trigger.dataset.portalTool, trigger));
+  });
+  backdrop.addEventListener('click', () => closeTools());
+  document.querySelectorAll('[data-portal-close]').forEach((button) => button.addEventListener('click', () => closeTools()));
+
+  document.addEventListener('keydown', (event) => {
+    if (!activePanel) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeTools();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = getFocusable(activePanel);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
+
+  initPortalSearch();
+  initAccessibilityPreferences();
+}
+
+function initActiveBreak() {
+  const panel = document.querySelector('[data-portal-panel="active-break"]');
+  const trigger = document.querySelector('[data-portal-tool="active-break"]');
+  if (!panel || !trigger) return;
+
+  const views = [...panel.querySelectorAll('[data-break-view]')];
+  const startButton = panel.querySelector('[data-break-start]');
+  const toggleButton = panel.querySelector('[data-break-toggle]');
+  const nextButton = panel.querySelector('[data-break-next]');
+  const finishButton = panel.querySelector('[data-break-finish]');
+  const againButton = panel.querySelector('[data-break-again]');
+  const reminderSelect = panel.querySelector('[data-break-reminder]');
+  const stepLabel = panel.querySelector('[data-break-step]');
+  const clock = panel.querySelector('[data-break-clock]');
+  const progress = panel.querySelector('.portal-break-progress');
+  const progressBar = panel.querySelector('[data-break-progress]');
+  const category = panel.querySelector('[data-break-category]');
+  const title = panel.querySelector('[data-break-title]');
+  const instruction = panel.querySelector('[data-break-instruction]');
+  const exerciseImage = panel.querySelector('[data-break-image]');
+  const daily = panel.querySelector('[data-break-daily]');
+
+  const reminderKey = 'portal_active_break_reminder_v1';
+  const historyKey = 'portal_active_break_history_v1';
+  const exercises = [
+    {
+      category: 'Respiración',
+      title: 'Respira con calma',
+      instruction: 'Adopta una postura cómoda. Inhala lentamente por la nariz y exhala sin forzar el ritmo.',
+      image: 'assets/uploads/pausa-respiracion.png',
+    },
+    {
+      category: 'Cuello y hombros',
+      title: 'Libera la tensión',
+      instruction: 'Baja los hombros, llévalos suavemente hacia atrás y realiza movimientos lentos, sin rebotes.',
+      image: 'assets/uploads/pausa-hombros.png',
+    },
+    {
+      category: 'Manos y muñecas',
+      title: 'Descansa tus manos',
+      instruction: 'Abre y cierra las manos. Después, mueve cada muñeca lentamente en ambos sentidos.',
+      image: 'assets/uploads/pausa-munecas.png',
+    },
+    {
+      category: 'Cambio de postura',
+      title: 'Activa todo el cuerpo',
+      instruction: 'Si puedes, ponte de pie. Estira brazos y piernas y camina unos pasos a un ritmo cómodo.',
+      image: 'assets/uploads/pausa-estiramiento.png',
+    },
+    {
+      category: 'Descanso visual',
+      title: 'Mira a la distancia',
+      instruction: 'Aparta la mirada de la pantalla, parpadea con naturalidad y observa un punto lejano.',
+      image: 'assets/uploads/pausa-descanso-visual.png',
+    },
+  ];
+
+  let current = 0;
+  let durations = [];
+  let remaining = 0;
+  let totalSeconds = 180;
+  let elapsed = 0;
+  let timer = null;
+  let running = false;
+  let reminderTimer = null;
+
+  const showView = (name) => {
+    views.forEach((view) => { view.hidden = view.dataset.breakView !== name; });
+  };
+
+  const formatTime = (seconds) => {
+    const safeSeconds = Math.max(0, seconds);
+    return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+  };
+
+  const render = () => {
+    const exercise = exercises[current];
+    const percent = Math.min(100, Math.round((elapsed / totalSeconds) * 100));
+    stepLabel.textContent = `Ejercicio ${current + 1} de ${exercises.length}`;
+    clock.textContent = formatTime(remaining);
+    category.textContent = exercise.category;
+    title.textContent = exercise.title;
+    instruction.textContent = exercise.instruction;
+    if (exerciseImage) exerciseImage.src = `${window.PORTAL_BASE || ''}/${exercise.image}`;
+    progressBar.style.width = `${percent}%`;
+    progress.setAttribute('aria-valuenow', String(percent));
+    toggleButton.textContent = running ? '⏸ Pausar' : '▶ Continuar';
+  };
+
+  const stopTimer = () => {
+    if (timer) window.clearInterval(timer);
+    timer = null;
+  };
+
+  const countToday = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    let history = {};
+    try {
+      history = JSON.parse(window.localStorage.getItem(historyKey) || '{}');
+    } catch (_) {
+      history = {};
+    }
+    history[today] = Number(history[today] || 0) + 1;
+    try {
+      window.localStorage.setItem(historyKey, JSON.stringify(history));
+    } catch (_) {
+      // La pausa funciona aunque el navegador impida guardar el contador.
+    }
+    return history[today];
+  };
+
+  const saveReminder = (minutes, due) => {
+    try {
+      window.localStorage.setItem(reminderKey, JSON.stringify({ minutes, due }));
+    } catch (_) {
+      // El recordatorio permanece activo durante la visita actual.
+    }
+  };
+
+  const markReminderDue = () => {
+    trigger.classList.add('is-break-due');
+    trigger.title = 'Es momento de realizar una pausa activa';
+  };
+
+  const scheduleReminder = (minutes, due = 0) => {
+    if (reminderTimer) window.clearTimeout(reminderTimer);
+    reminderTimer = null;
+    trigger.classList.remove('is-break-due');
+    trigger.removeAttribute('title');
+    if (!minutes) {
+      saveReminder(0, 0);
+      return;
+    }
+
+    const target = due || (Date.now() + minutes * 60 * 1000);
+    saveReminder(minutes, target);
+    const delay = target - Date.now();
+    if (delay <= 0) {
+      markReminderDue();
+      return;
+    }
+    reminderTimer = window.setTimeout(markReminderDue, Math.min(delay, 2147483647));
+  };
+
+  const completeBreak = () => {
+    stopTimer();
+    running = false;
+    progressBar.style.width = '100%';
+    progress.setAttribute('aria-valuenow', '100');
+    const completed = countToday();
+    daily.textContent = `Hoy completaste ${completed} pausa${completed === 1 ? '' : 's'} activa${completed === 1 ? '' : 's'} en este navegador.`;
+    showView('complete');
+    const reminderMinutes = Number(reminderSelect.value || 0);
+    if (reminderMinutes) scheduleReminder(reminderMinutes);
+  };
+
+  const goToExercise = (index) => {
+    if (index >= exercises.length) {
+      completeBreak();
+      return;
+    }
+    current = Math.max(0, index);
+    elapsed = durations.slice(0, current).reduce((sum, duration) => sum + duration, 0);
+    remaining = durations[current];
+    render();
+  };
+
+  const startTimer = () => {
+    stopTimer();
+    running = true;
+    render();
+    timer = window.setInterval(() => {
+      if (!running) return;
+      remaining -= 1;
+      elapsed += 1;
+      if (remaining <= 0) {
+        goToExercise(current + 1);
+        return;
+      }
+      render();
+    }, 1000);
+  };
+
+  const startBreak = () => {
+    totalSeconds = Number(panel.querySelector('input[name="portal-break-duration"]:checked')?.value || 180);
+    const baseDuration = Math.floor(totalSeconds / exercises.length);
+    durations = exercises.map(() => baseDuration);
+    durations[durations.length - 1] += totalSeconds - (baseDuration * exercises.length);
+    current = 0;
+    elapsed = 0;
+    remaining = durations[0];
+    trigger.classList.remove('is-break-due');
+    showView('session');
+    startTimer();
+  };
+
+  startButton?.addEventListener('click', startBreak);
+  toggleButton?.addEventListener('click', () => {
+    running = !running;
+    if (running) startTimer();
+    else {
+      stopTimer();
+      render();
+    }
+  });
+  nextButton?.addEventListener('click', () => goToExercise(current + 1));
+  finishButton?.addEventListener('click', () => {
+    stopTimer();
+    running = false;
+    showView('welcome');
+  });
+  againButton?.addEventListener('click', () => showView('welcome'));
+  reminderSelect?.addEventListener('change', () => scheduleReminder(Number(reminderSelect.value || 0)));
+
+  document.addEventListener('portal-tool:closed', (event) => {
+    if (event.detail?.name !== 'active-break' || !running) return;
+    running = false;
+    stopTimer();
+    render();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && running) {
+      running = false;
+      stopTimer();
+      render();
+    }
+  });
+
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(reminderKey) || '{}');
+    const minutes = [60, 90, 120].includes(Number(saved.minutes)) ? Number(saved.minutes) : 0;
+    reminderSelect.value = String(minutes);
+    if (minutes) scheduleReminder(minutes, Number(saved.due || 0));
+  } catch (_) {
+    reminderSelect.value = '0';
+  }
+}
+
+function initPortalSearch() {
+  const input = document.getElementById('portal-search-input');
+  const results = document.getElementById('portal-search-results');
+  const index = Array.isArray(window.PORTAL_SEARCH_INDEX) ? window.PORTAL_SEARCH_INDEX : [];
+  if (!input || !results) return;
+
+  const normalize = (value) => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es')
+    .trim();
+
+  const renderMessage = (message) => {
+    results.replaceChildren();
+    const paragraph = document.createElement('p');
+    paragraph.className = 'portal-search-message';
+    paragraph.textContent = message;
+    results.appendChild(paragraph);
+  };
+
+  const renderResults = () => {
+    const query = normalize(input.value);
+    if (query.length < 2) {
+      renderMessage('Escribe al menos dos letras para iniciar la búsqueda.');
+      return;
+    }
+
+    const terms = query.split(/\s+/).filter(Boolean);
+    const matches = index
+      .map((item) => {
+        const title = normalize(item.title);
+        const haystack = normalize(`${item.title} ${item.description} ${item.category}`);
+        if (!terms.every((term) => haystack.includes(term))) return null;
+        let score = title === query ? 100 : (title.startsWith(query) ? 60 : 20);
+        terms.forEach((term) => { if (title.includes(term)) score += 10; });
+        return { item, score };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 12);
+
+    results.replaceChildren();
+    if (!matches.length) {
+      renderMessage('No encontramos resultados. Prueba con otra palabra o tema.');
+      return;
+    }
+
+    const summary = document.createElement('p');
+    summary.className = 'portal-search-count';
+    summary.textContent = `${matches.length} resultado${matches.length === 1 ? '' : 's'}`;
+    results.appendChild(summary);
+
+    matches.forEach(({ item }) => {
+      const link = document.createElement('a');
+      link.className = 'portal-search-result';
+      link.href = item.url;
+      if (/^https?:\/\//i.test(item.url) && !item.url.startsWith(window.location.origin)) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+
+      const category = document.createElement('span');
+      category.className = 'portal-search-result-category';
+      category.textContent = item.category || 'Contenido';
+      const title = document.createElement('strong');
+      title.textContent = item.title;
+      const description = document.createElement('span');
+      description.className = 'portal-search-result-description';
+      description.textContent = item.description || 'Abrir contenido';
+
+      link.append(category, title, description);
+      results.appendChild(link);
+    });
+  };
+
+  input.addEventListener('input', renderResults);
+  renderMessage('Escribe al menos dos letras para iniciar la búsqueda.');
+}
+
+function initAccessibilityPreferences() {
+  const storageKey = 'portal_accessibility_v1';
+  const defaults = { size: 'normal', contrast: false, underline: false, grayscale: false };
+  let preferences = { ...defaults };
+
+  try {
+    preferences = { ...defaults, ...JSON.parse(window.localStorage.getItem(storageKey) || '{}') };
+  } catch (_) {
+    preferences = { ...defaults };
+  }
+
+  const apply = () => {
+    const allowedSizes = ['small', 'normal', 'large'];
+    if (!allowedSizes.includes(preferences.size)) preferences.size = 'normal';
+
+    document.body.classList.toggle('a11y-text-small', preferences.size === 'small');
+    document.body.classList.toggle('a11y-text-large', preferences.size === 'large');
+    document.body.classList.toggle('a11y-high-contrast', Boolean(preferences.contrast));
+    document.body.classList.toggle('a11y-underline-links', Boolean(preferences.underline));
+    document.body.classList.toggle('a11y-grayscale', Boolean(preferences.grayscale));
+
+    document.querySelectorAll('[data-a11y-size]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.a11ySize === preferences.size));
+    });
+    document.querySelectorAll('[data-a11y-toggle]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(Boolean(preferences[button.dataset.a11yToggle])));
+    });
+
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(preferences));
+    } catch (_) {
+      // La preferencia sigue activa durante la visita si el navegador bloquea el almacenamiento.
+    }
+  };
+
+  document.querySelectorAll('[data-a11y-size]').forEach((button) => {
+    button.addEventListener('click', () => {
+      preferences.size = button.dataset.a11ySize;
+      apply();
+    });
+  });
+  document.querySelectorAll('[data-a11y-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const key = button.dataset.a11yToggle;
+      preferences[key] = !preferences[key];
+      apply();
+    });
+  });
+  document.querySelector('[data-a11y-reset]')?.addEventListener('click', () => {
+    preferences = { ...defaults };
+    apply();
+  });
+
+  apply();
+}
 
 function initHeroNetwork() {
   const canvas = document.getElementById('hero-network');
@@ -216,12 +758,16 @@ function initSidebar() {
   function openSidebar() {
     sidebar.classList.add('open');
     overlay?.classList.add('open');
+    hamburger?.setAttribute('aria-expanded', 'true');
+    hamburger?.setAttribute('aria-label', 'Cerrar menú principal');
     document.body.style.overflow = 'hidden';
   }
 
   function closeSidebar() {
     sidebar.classList.remove('open');
     overlay?.classList.remove('open');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    hamburger?.setAttribute('aria-label', 'Abrir menú principal');
     document.body.style.overflow = '';
   }
 
@@ -229,6 +775,13 @@ function initSidebar() {
     sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
   });
   overlay?.addEventListener('click', closeSidebar);
+  sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeSidebar));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSidebar();
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900) closeSidebar();
+  });
 }
 
 function setActiveNav() {
@@ -245,7 +798,7 @@ function initPageTransitions() {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduceMotion) return;
 
-  document.querySelectorAll('.sidebar-nav .nav-item').forEach((link) => {
+  document.querySelectorAll('.portal-main-nav .nav-item').forEach((link) => {
     link.addEventListener('click', (event) => {
       const href = link.getAttribute('href');
       if (!href || link.classList.contains('active')) return;

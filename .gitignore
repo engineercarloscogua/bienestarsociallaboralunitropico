@@ -20,10 +20,20 @@ tmp/*
 /data/delegations.json
 /data/delegations.backup.json
 /data/delegations.lock
+/data/hero-carousel.json
+/data/hero-carousel.backup.json
+/data/hero-carousel.lock
 
 # Archivos cargados desde el panel (los assets ya versionados siguen en Git)
 /assets/uploads/*
 !/assets/uploads/.htaccess
+!/assets/uploads/pruebas-psicotecnicas.png
+!/assets/uploads/pruebas-psicotecnicas-construccion.png
+!/assets/uploads/pausa-respiracion.png
+!/assets/uploads/pausa-hombros.png
+!/assets/uploads/pausa-munecas.png
+!/assets/uploads/pausa-estiramiento.png
+!/assets/uploads/pausa-descanso-visual.png
 
 # Sistema operativo y editores
 .DS_Store

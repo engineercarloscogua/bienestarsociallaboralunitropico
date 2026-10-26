@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// includes/header.php — Header/Sidebar compartido del portal
+// includes/header.php — Encabezado y navegación compartidos del portal
 // ============================================================
 require_once __DIR__ . '/functions.php';
 
@@ -9,7 +9,6 @@ $programSlugs = array_keys(readData()['program_pages'] ?? []);
 $base     = baseUrl();
 $siteName = getConfig('site_title', 'Bienestar Social Laboral');
 $siteSubtitle = getConfig('site_subtitle', 'Bienestar Social Laboral - Oficina de Talento Humano');
-$footerEmails = array_filter(array_map('trim', explode(',', getConfig('footer_email', 'psicologiaorganizacional@unitropico.edu.co,climaorganizacional@unitropico.edu.co'))));
 $cssVersion = filemtime(__DIR__ . '/../assets/css/main.css');
 $faviconVersion = filemtime(__DIR__ . '/../assets/uploads/logo-pestana-pagina.png');
 $analyticsRequestToken = issuePublicRequestToken('analytics');
@@ -40,7 +39,7 @@ $navIcons = [
   <title><?= e($pageTitle ?? $siteName) ?> — Unitrópico</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@600;700;800;900&family=Raleway:wght@400;600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= $base ?>/assets/css/main.css?v=<?= $cssVersion ?>">
   <link rel="icon" type="image/png" href="<?= $base ?>/assets/uploads/logo-pestana-pagina.png?v=<?= $faviconVersion ?>">
 </head>
@@ -48,32 +47,36 @@ $navIcons = [
 
 <div class="institutional-bar" role="banner">
   <div class="institutional-bar-inner">
-    <span class="institutional-brand" aria-label="Gobierno de Colombia">
-      <img src="<?= $base ?>/assets/uploads/govco-logo.png" alt="GOV.CO">
-    </span>
+    <a class="institutional-brand" href="https://www.gov.co/" target="_blank" rel="noopener noreferrer" aria-label="Ir al Portal Único del Estado Colombiano GOV.CO">
+      <img src="<?= $base ?>/assets/govco-logo-2026.svg" alt="GOV.CO">
+    </a>
     <nav class="institutional-links" aria-label="Accesos institucionales">
-      <a class="institutional-link institutional-home-link" href="https://unitropico.edu.co/" target="_blank" rel="noopener noreferrer" aria-label="Ir al sitio oficial de Unitrópico" title="Ir al sitio oficial de Unitrópico">
-        <?= icon('home', '', 15) ?>
-        <span>Unitrópico</span>
+      <a class="institutional-link" href="https://unitropico.edu.co/participa/">
+        Participa
       </a>
       <a class="institutional-link" href="https://unitropico.edu.co/transparencia-y-acceso-a-la-informacion-publica-de-unitropico/" target="_blank" rel="noopener noreferrer">
-        Transparencia y acceso a la información pública
+        Transparencia
       </a>
       <a class="institutional-link" href="https://unitropico.edu.co/conocenos-quienes-somos-y-filosofia-institucional-de-unitropico/normatividad-leyes-y-decretos-universitarios-de-unitropico/universidad-unitropico-transformacion-y-oficializacion-universitaria/" target="_blank" rel="noopener noreferrer">
-        Transformación y oficialización universitaria
+        Normatividad
+      </a>
+      <a class="institutional-link" href="https://unitropico.edu.co/#servicio-ciudadania">
+        Atención al Usuario
+      </a>
+      <a class="institutional-link" href="https://unitropico.edu.co/formulacion-ptep-y-gestion-del-riesgos-de-unitropico/">
+        Formulación PTEP
       </a>
     </nav>
   </div>
 </div>
 
 <canvas id="particles-canvas"></canvas>
-<div class="sidebar-overlay" id="sidebar-overlay"></div>
+<div class="portal-menu-overlay" id="sidebar-overlay"></div>
 
-<div class="layout">
-
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">
+<!-- ── NAVEGACIÓN PRINCIPAL HORIZONTAL ── -->
+<header class="portal-header">
+  <div class="portal-header-main">
+    <a class="portal-brand" href="<?= $base ?>/index.php" aria-label="Ir al inicio de Bienestar Social Laboral">
       <div class="brand-logo">
         <img src="<?= $base ?>/assets/uploads/escudo-universidad.png" alt="Escudo Unitrópico">
       </div>
@@ -81,10 +84,21 @@ $navIcons = [
         <h1>Unitrópico</h1>
         <span><?= e($siteSubtitle) ?></span>
       </div>
-    </div>
+    </a>
 
-    <nav class="sidebar-nav">
-      <span class="nav-label">Portal</span>
+    <div class="portal-header-actions">
+      <a href="<?= $base ?>/admin/dashboard.php" class="btn-admin-link">
+        <?= icon('settings', '', 15) ?>
+        <span>Panel Admin</span>
+      </a>
+      <button class="btn-hamburger" id="btn-hamburger" type="button" aria-label="Abrir menú principal" aria-controls="sidebar" aria-expanded="false">
+        <?= icon('menu', '', 22) ?>
+      </button>
+    </div>
+  </div>
+
+  <nav class="portal-main-nav" id="sidebar" aria-label="Navegación principal">
+    <div class="portal-main-nav-inner">
       <?php foreach ($pages as $navPage):
         $slug  = $navPage['slug'];
         $href  = ($slug === 'inicio')
@@ -97,31 +111,22 @@ $navIcons = [
                  || ($currentScript === $slug . '.php')
                  || ($currentScript === 'programa.php' && ($_GET['slug'] ?? '') === $slug);
       ?>
-      <a href="<?= e($href) ?>" class="nav-item<?= $isActive ? ' active' : '' ?>">
+      <a href="<?= e($href) ?>" class="nav-item<?= $isActive ? ' active' : '' ?>"<?= $isActive ? ' aria-current="page"' : '' ?>>
         <?= icon($ico, '', 18) ?>
-        <?= e($navPage['title']) ?>
+        <span><?= e($navPage['title']) ?></span>
       </a>
       <?php endforeach; ?>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-footer-info">
-        <p>Portal de Bienestar</p>
-        <?php foreach ($footerEmails as $mail): ?>
-          <p><?= e($mail) ?></p>
-        <?php endforeach; ?>
-      </div>
     </div>
-  </aside>
+  </nav>
+</header>
+
+<div class="layout">
 
   <!-- ── MAIN ── -->
   <div class="main">
-    <!-- Top Bar -->
+    <!-- Ruta de navegación -->
     <header class="topbar">
       <div class="topbar-left">
-        <button class="btn-hamburger" id="btn-hamburger" aria-label="Menú">
-          <?= icon('menu', '', 22) ?>
-        </button>
         <nav class="breadcrumb">
           <a href="<?= $base ?>/index.php">Inicio</a>
           <?php if (!empty($pageTitle) && $pageTitle !== 'Inicio'): ?>
@@ -129,12 +134,6 @@ $navIcons = [
             <span class="current"><?= e($pageTitle) ?></span>
           <?php endif; ?>
         </nav>
-      </div>
-      <div class="topbar-right">
-        <a href="<?= $base ?>/admin/dashboard.php" class="btn-admin-link">
-          <?= icon('settings', '', 15) ?>
-          Panel Admin
-        </a>
       </div>
     </header>
 
